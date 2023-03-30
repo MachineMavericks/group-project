@@ -69,6 +69,33 @@ fig.update_layout(showlegend=False)
 # ADD FIG TO FLASK APP:
 app.add_url_rule('/plotly', 'plotly', lambda: fig.to_html(full_html=False, include_plotlyjs='cdn'))
 
+# USE KMEANS TO CLUSTER THE GRAPH NODES - THEN PLOT THEM USING PLOTLY (SCATTERGEO):
+from sklearn.cluster import KMeans
+pos = {node[0]: (node[1]['lon'], node[1]['lat']) for node in nxgraph.nodes(data=True)}
+kmeans = KMeans(n_clusters=10, random_state=0).fit(nxgraph.nodes.data())
+clusters = kmeans.predict(list(pos.values()))
+fig2 = go.Figure()
+for cluster in range(0, 10):
+    fig2.add_trace(go.Scattergeo(
+        lon=[pos[node[0]][0] for node in nxgraph.nodes.data() if clusters[node[0]] == cluster],
+        lat=[pos[node[0]][1] for node in nxgraph.nodes.data() if clusters[node[0]] == cluster],
+        mode='markers',
+        marker=dict(
+            size=5,
+            color='rgb(255, 0, 0)',
+            line=dict(
+                width=3,
+                color='rgba(68, 68, 68, 0)'
+            )
+        ),
+        text=node[0],
+    ))
+# SETTINGS=
+fig2.update_layout(showlegend=False)
+# ADD FIG TO FLASK APP:
+app.add_url_rule('/plotly2', 'plotly2', lambda: fig2.to_html(full_html=False, include_plotlyjs='cdn'))
+
+
 def main():
     # START THE APP:
     app.run(debug=True)
