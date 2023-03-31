@@ -3,17 +3,22 @@ import json
 
 # NXGRAPH LOADE: GRAPH -> NETWORKX
 def nxgraph_loader(graph):
-    gnx = nx.Graph()
+    nxgraph = nx.Graph()
     for node in graph.nodes:
-        gnx.add_nodes_from([(node.id, {'lat': node.position.lat, 'lon': node.position.lon})])
+        passages = node.get_passages()
+        weight = sum([int(passage.get_stay_time()) for passage in passages])
+        nxgraph.add_node(node.get_id(), weight=weight, lat=node.get_position().get_lat(),
+                         lon=node.get_position().get_lon())
     for edge in graph.edges:
-        gnx.add_edges_from([(edge.fromNode.id, edge.destNode.id, {'fromLat': edge.fromNode.position.lat, 'fromLon': edge.fromNode.position.lon, 'destLat': edge.destNode.position.lat, 'destLon': edge.destNode.position.lon})])
-    # BUG FIX: CONVERT INTS TO STRINGS:
-    gnx = nx.convert_node_labels_to_integers(gnx, first_label=0, ordering='default', label_attribute=None)
-    for edge in gnx.edges:
-        for attr in gnx.edges[edge]:
-            gnx.edges[edge][attr] = str(gnx.edges[edge][attr])
-    return gnx
+        travels = edge.get_travels()
+        weight = sum([int(travel.get_travel_time()) for travel in edge.get_travels()])
+        nxgraph.add_edge(edge.get_fromNode(), edge.get_destNode(), weight=weight)
+    # BUG FIX: CONVERT INTS TO STRINGS: #TODO: REPAIR
+    # nxgraph = nx.convert_node_labels_to_integers(nxgraph, first_label=0, ordering='default', label_attribute=None)
+    # for edge in nxgraph.edges:
+    #     for attr in nxgraph.edges[edge]:
+    #         nxgraph.edges[edge][attr] = str(nxgraph.edges[edge][attr])
+    # return nxgraph
 
 # CONVERTER: NETWORKX <-> JSON  (! IMPORTANT: This format will lose the edge attributes)
 def nx_to_json_string(gnx):
