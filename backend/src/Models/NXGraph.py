@@ -1,7 +1,7 @@
 import networkx as nx
 import json
 
-
+# NXGRAPH LOADE: GRAPH -> NETWORKX
 def nxgraph_loader(graph):
     gnx = nx.Graph()
     for node in graph.nodes:

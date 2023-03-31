@@ -1,135 +1,79 @@
 # IMPORTS=
-import pandas as pd
+import time as time
 import numpy as np
-import json
 
 # MODELS=
-from src.Models.Position import Position
+from src.Models.EdgeTravel import EdgeTravel
 from src.Models.Edge import Edge
 from src.Models.Node import Node
-from src.Models.Passage import Passage  # TO BE EDITED
-
-
-def read_mtx(filepath):
-    # Read mtx file, and store each line in a list
-    with open(filepath, 'r') as f:
-        lines = f.readlines()
-    # Remove the lines that start with '%'
-    lines = [line for line in lines if not line.startswith('%')]
-    # Store the lines in a 2D list
-    lines = [line.split() for line in lines]
-    return lines
+from src.Models.NodePassage import NodePassage
+from src.Models.Position import Position
+# SERVICES=
+from src.Preprocessing.DataPreprocessing import *
+from src.Preprocessing.EdgePreprocessing import *
+from src.Preprocessing.NodePreprocessing import *
 
 
 class Graph:
-    def __init__(self, filepath):
+    def __init__(self, filepath, save_csvs=False, output_dir=None):
+        # START TIMER:
+        start_time = time.time()
+
         # READ THE FILE:
         self.filepath = filepath
-        self.df = pd.read_csv(filepath, low_memory=False)
+        self.df = preprocessing_pipeline(pd.read_csv(filepath, low_memory=False), save_csv=save_csvs, path=output_dir + 'railway_pp.csv')
+
+        # TODO: NODES CONSTRUCTION:
+        df_ = nodes_preprocessing(self.df, save_csv=save_csvs, output_path=output_dir + 'nodes_pp.csv')
+        nodes_df = df_.copy()\
+            .groupby(['st_id', 'lat', 'lon']).size().reset_index(name='count')\
+            .sort_values(by=['st_id'], ascending=True)\
+            .reset_index(drop=True)
+        nodes_passages_df = df_.copy()
+        print("Constructing the nodes...")
         self.nodes = []
+        for index, row in nodes_df.iterrows():
+            node_passages_df = nodes_passages_df[(nodes_passages_df['st_id'] == row['st_id'])]\
+                .sort_values(by=['arr_time'], ascending=True)\
+                .reset_index(drop=True)
+            nodes_passages = []
+            for index_, row_ in node_passages_df.iterrows():
+                nodes_passages.append(NodePassage(row_['train'], row_['day'], row_['arr_time'], row_['stay_time']))
+            self.nodes.append(Node(row['st_id'], Position(row['lat'], row['lon']), nodes_passages))
+        print("Nodes constructed.")
 
-        # NODES CONSTRUCTION:
-        for st_id in self.df['st_id'].unique():
-            lat = self.df[self.df['st_id'] == st_id]['lat'].values[0]
-            lon = self.df[self.df['st_id'] == st_id]['lon'].values[0]
-            position = Position(lat, lon)
-            node = Node(st_id, position, [])
-            self.nodes.append(node)
-        self.nodes = sorted(self.nodes, key=lambda node: node.id)
-        self.nodesAmount = len(self.nodes)
 
-        # EDGES CONSTRUCTION:
+        # TODO: EDGES CONSTRUCTION:
+        df_ = edges_preprocessing(self.df, save_csv=True, path=output_dir + 'edges_pp.csv')
+        print("Constructing the edges...")
+        edges_df = df_.copy()\
+            .groupby(['dep_st_id', 'arr_st_id', 'mileage']).size().reset_index(name='count')\
+            .sort_values(by=['dep_st_id', 'arr_st_id', 'mileage'], ascending=True)\
+            .reset_index(drop=True)
+        edge_travels_df = df_.copy()
+
         self.edges = []
-        self.trains = [train for train in self.df['train'].unique()]
-        for index, row in self.df.iterrows():
-            if not (row['stay_time'] == '-' and self.df.iloc[index - 1]['stay_time'] == '-') and (
-                    row['train'] == self.df.iloc[index - 1]['train']):
-                fromNode = Node(self.df.iloc[index - 1]['st_id'],
-                                Position(self.df.iloc[index - 1]['lat'], self.df.iloc[index - 1]['lon']), [])
-                destNode = Node(row['st_id'], Position(row['lat'], row['lon']), [])
-                edge = Edge(index, fromNode, destNode, row['mileage'], 0)
-                self.edges.append(edge)
-        self.edgesAmount = len(self.edges)
+        for index, row in edges_df.iterrows():
+            edge_travels_df_ = edge_travels_df[(edge_travels_df['dep_st_id'] == row['dep_st_id'])
+                                               & (edge_travels_df['arr_st_id'] == row['arr_st_id'])
+                                               & (edge_travels_df['mileage'] == row['mileage'])]\
+                .sort_values(by=['dep_date'], ascending=True)\
+                .reset_index(drop=True)
+            travels = []
+            for index_, row_ in edge_travels_df_.iterrows():
+                travels.append(
+                    EdgeTravel(row_['train_id'], row_['dep_st_id'], row_['day'], row_['dep_date'], row_['travel_time'],
+                               row_['arr_st_id']))
+            # Create the edge:
+            edge = Edge(index, row['dep_st_id'], row['arr_st_id'], row['mileage'], travels)
+            self.edges.append(edge)
+        print("Edges constructed.")
 
-        # PASSAGES CONSTRUCTION:
-        self.df = self.df.sort_values(by=['st_id'])
-        # For each node, add the passages:
-        index = 0
-        st_id = self.df.iloc[index]['st_id']
-        for row in self.df.itertuples():
-            if row.st_id != st_id:
-                index += 1
-                st_id = row.st_id
-            passage = Passage(row.train, row.arr_time, row.dep_time, row.stay_time, row.date)
-            self.nodes[index].passages.append(passage)
+        # END.
+        print("Graph constructed in " + str(np.round((time.time() - start_time), 2)) + " seconds.")
 
-    def print_metrics(self):
-        print("GRAPH_METRICS = { ", end='')
-        print("len(nodes) = " + str(len(self.nodes)) + ", ", end='')
-        print("len(edges) = " + str(len(self.edges)) + ", ", end='')
-        print("len(trains) = " + str(len(self.trains)) + " }")
 
-    def print_attributes(self):
-        print("GRAPH.NODES(len=" + str(len(self.nodes)) + ")={")
-        print("Node={id=" + str(self.nodes[0].id) + ", lat=" + str(self.nodes[0].position.lat) + ", lon=" + str(
-            self.nodes[0].position.lon) + ", ", end='')
-        print("Passages[Node=" + str(self.nodes[0].id) + "]={", end='')
-        for passage in self.nodes[0].passages:
-            print("Passage={train=" + str(passage.train) + ", arr_time=" + str(passage.arr_time) + ", dep_time=" + str(
-                passage.dep_time) + ", stay_time=" + str(passage.stay_time) + ", date=" + str(passage.date) + "}, ",
-                  end='')
-        print("}")
-        print("...")
-        print("Node={id=" + str(self.nodes[len(self.nodes) - 1].id) + ", lat=" + str(
-            self.nodes[len(self.nodes) - 1].position.lat) + ", lon=" + str(
-            self.nodes[len(self.nodes) - 1].position.lon) + ", ", end='')
-        print("Passages[Node=" + str(self.nodes[len(self.nodes) - 1].id) + "]={", end='')
-        for passage in self.nodes[len(self.nodes) - 1].passages:
-            print("Passage={train=" + str(passage.train) + ", arr_time=" + str(passage.arr_time) + ", dep_time=" + str(
-                passage.dep_time) + ", stay_time=" + str(passage.stay_time) + ", date=" + str(passage.date) + "}, ",
-                  end='')
-        print("}")
-        print("}")
-        print("GRAPH.EDGES(len=" + str(len(self.edges)) + ")={")
-        print(
-            "Edge={id=" + str(self.edges[0].id) + ", fromNode=" + str(self.edges[0].fromNode.id) + ", destNode=" + str(
-                self.edges[0].destNode.id) + ", mileae=" + str(self.edges[0].mileage) + ", duration=" + str(
-                self.edges[0].duration) + "}, ", end='')
-        print("}")
-        print("...")
-        print("Edge={id=" + str(self.edges[len(self.edges) - 1].id) + ", fromNode=" + str(
-            self.edges[len(self.edges) - 1].fromNode.id) + ", destNode=" + str(
-            self.edges[len(self.edges) - 1].destNode.id) + ", mileage=" + str(
-            self.edges[len(self.edges) - 1].mileage) + ", duration=" + str(
-            self.edges[len(self.edges) - 1].duration) + "}, ", end='')
-        print("}")
-
-    def toJSON(self, filepath):
-        # Create a dictionary with the graph data
-        data = {
-            'nodes': [{
-                'id': node.id,
-                'position': {'lat': node.position.lat, 'lon': node.position.lon},
-                'passages': [{
-                    'train': passage.train,
-                    'arr_time': passage.arr_time,
-                    'dep_time': passage.dep_time,
-                    'stay_time': passage.stay_time,
-                    'date': passage.date
-                } for passage in node.passages]
-            } for node in self.nodes],
-            'edges': [{
-                'id': edge.id,
-                'from': edge.fromNode.id,
-                'to': edge.destNode.id,
-                'mileage': edge.mileage,
-                'duration': edge.duration
-            } for edge in self.edges]
-        }
-
-        # Convert int64 datatypes to int
-        data = json.loads(json.dumps(data, default=lambda x: int(x) if isinstance(x, np.int64) else x))
-
-        # Write the data to a file
-        with open(filepath, 'w') as f:
-            json.dump(data, f)
+def main():
+    pass
+if __name__ == "__main__":
+    main()
