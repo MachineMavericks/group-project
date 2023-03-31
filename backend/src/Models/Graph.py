@@ -1,6 +1,7 @@
 # IMPORTS=
 import time as time
 import numpy as np
+import warnings
 
 # MODELS=
 from src.Models.EdgeTravel import EdgeTravel
@@ -16,6 +17,7 @@ from src.Preprocessing.NodePreprocessing import *
 class Graph:
     def __init__(self, filepath, save_csvs=False, output_dir=None):
         # START TIMER:
+        warnings.simplefilter(action='ignore', category=FutureWarning)
         start_time = time.time()
 
         # READ THE FILE:

@@ -4,6 +4,7 @@ class Node:
         self._position = position
         self._passages = passages
 
+
     # GETTERS:
     def get_id(self):
         return self._id

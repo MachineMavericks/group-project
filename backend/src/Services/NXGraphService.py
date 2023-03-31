@@ -1,19 +1,16 @@
+# IMPORTS=
 import matplotlib.pyplot as plt
 import networkx as nx
+import plotly.graph_objs as go
 
-from src.Models import NXGraph as NXG
-from src.Models import Graph as G
+# MODELS=
+from src.Models.NXGraph import NXGraph
 
-graph = G.Graph('resources/data/input/railway.csv')
-nxgraph = NXG.nxgraph_loader(graph)
-
-def nodes_whose_centrality_degree_is_greater_than(graph, degree):
-    # TODO.
-    # return nodes[]
-    pass
-
-# Heatmap using the nodes's weight as the color (use a red colormap)
-def node_passages_plt_heatmap(nxgraph, pos, save_png=False):
+# MATPLOTLIB:
+# HEATMAP - NODES_WEIGHT=PASSAGE - OUTPUT=PLT:
+def node_passages_plt_heatmap(nxgraph, save_png=False):
+    # Position of the nodes:
+    pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
     max_weight = max([nxgraph.nodes[node]['weight'] for node in nxgraph.nodes])
     min_weight = min([nxgraph.nodes[node]['weight'] for node in nxgraph.nodes])
     average_weight = sum([nxgraph.nodes[node]['weight'] for node in nxgraph.nodes]) / len(nxgraph.nodes)
@@ -40,8 +37,11 @@ def node_passages_plt_heatmap(nxgraph, pos, save_png=False):
     if save_png:
         # Save the figure as a png:
         plt.savefig("resources/data/output/node_passages_heatmap.png", dpi=1200)
-
-def edge_travels_plt_heatmap(nxgraph, pos, save_png=False):
+    plt.show()
+# HEATMAP - NODES_WEIGHT=TRAVELS - OUTPUT=PLT:
+def edge_travels_plt_heatmap(nxgraph, save_png=False):
+    # Position of the nodes:
+    pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
     # Heatmap using the edges's weight as the color (use a red colormap)
     max_weight = max([nxgraph.edges[edge]['weight'] for edge in nxgraph.edges])
     min_weight = min([nxgraph.edges[edge]['weight'] for edge in nxgraph.edges])
@@ -67,3 +67,9 @@ def edge_travels_plt_heatmap(nxgraph, pos, save_png=False):
     if save_png:
         # Save the figure as a png:
         plt.savefig("resources/data/output/edge_travels_heatmap.png", dpi=1200)
+    plt.show()
+
+# PLOTLY:
+# TODO: HEATMAP - NODES_WEIGHT=PASSAGE - OUTPUT=PLOTLY_HTML:
+def plotly_heatmap_nodes(nxgraph, save_html=False):
+    pass
