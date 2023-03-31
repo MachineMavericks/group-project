@@ -77,7 +77,17 @@ def replace_null_mileages_with_zeroes(df):
     df = df.reset_index(drop=True)
     return df
 
-# 6. DEDUCE MILEAGES USING TRAINS SPEED METADATA:
+# 6. REPLACE NULL STAY TIMES WITH ZEROES:
+def replace_null_stay_times_with_zeroes(df):
+    df['stay_time'] = df['stay_time']\
+        .fillna(0)\
+        .replace(' ', 0)\
+        .replace('-', 0)
+    print("Replaced null stay times with zeroes.")
+    df = df.reset_index(drop=True)
+    return df
+
+# X. DEDUCE MILEAGES USING TRAINS SPEED METADATA:
 def deduce_mileage_using_speed_and_travel_times(df):
     kmph_speed_dict = {
     'G': 350,
@@ -133,7 +143,10 @@ def preprocessing_pipeline(df, save_csv=False, path=None):
     # 5. REPLACE NULL MILEAGES WITH ZEROES:
     df = replace_null_mileages_with_zeroes(df)
 
-    # 6. DEDUCE MILEAGES USING TRAINS SPEED METADATA:
+    # 6. REPLACE NULL STAY TIMES WITH ZEROES:
+    df = replace_null_stay_times_with_zeroes(df)
+
+    # X. DEDUCE MILEAGES USING TRAINS SPEED METADATA:
     # df = deduce_mileage_using_speed_and_travel_times(df)  # TODO: This is not working properly. Discuss with teachers.
 
     # END. RESET INDEXES:
