@@ -74,6 +74,18 @@ class Graph:
         # END.
         print("Graph constructed in " + str(np.round((time.time() - start_time), 2)) + " seconds.")
 
+    # GETTERS:
+    def get_node_by_id(self, id):
+        for node in self.nodes:
+            if node.get_id() == id:
+                return node
+        return None
+    def get_edge_by_id(self, id):
+        for edge in self.edges:
+            if edge.get_id() == id:
+                return edge
+        return None
+
 
 def main():
     pass
