@@ -1,17 +1,17 @@
 # FLASK IMPORTS:
-from flask import Flask                                     # FLASK
-from flask_restx import Api                                 # REST-X API
+from flask import Flask  # FLASK
+from flask_restx import Api  # REST-X API
 # PLOTLY IMPORTS:
 import plotly.graph_objs as go
 
 # MODELS=
-from src.Models.Graph import  *                             # GRAPH MODEL
-from src.Models.NXGraph import *                            # NXGRAPH MODEL
+from src.Models.Graph import *  # GRAPH MODEL
+from src.Models.NXGraph import *  # NXGRAPH MODEL
 # SERVICES=
 # ...
 # CONTROLLERS=
-from src.Controllers.GraphController import *               # GRAPH CONTROLLER
-from src.Controllers.NXGraphController import *             # NXGRAPH CONTROLLER
+from src.Controllers.GraphController import *  # GRAPH CONTROLLER
+from src.Controllers.NXGraphController import *  # NXGRAPH CONTROLLER
 
 # OBJECTS=
 # graph = G.Graph('resources/data/input/railway.csv')
@@ -20,14 +20,14 @@ nxgraph = NXG.gml_file_to_nx('resources/data/output/nxgraph.gml')
 with open('resources/data/input/china.json') as f:
     china_geojson = json.load(f)
 
-
 # FLASK APP:
 app = Flask(__name__)
 # REST-X API DOC/HANDLER:
 api = Api(app,
           version='1.0',
           title='Machine Mavericks ™ - API Documentation',
-          description='Official API Documentation for the Machine Mavericks Project.\n\nMade using RestX (Swagger) for Flask.\n\nCourtesy of: Hans Haller.',
+          description='Official API Documentation for the Machine Mavericks Project.\n\nMade using RestX (Swagger) '
+                      'for Flask.\n\nCourtesy of: Hans Haller.',
           doc='/swagger',
           )
 # ADD NAMESPACES TO API DOC:
@@ -101,5 +101,7 @@ def main():
     app.run(debug=True)
     # START THE SWAGGER DOC:
     api.init_app(app)
+
+
 if __name__ == '__main__':
     main()

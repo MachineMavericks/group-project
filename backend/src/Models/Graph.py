@@ -1,6 +1,7 @@
 # IMPORTS=
 import time as time
 import numpy as np
+import warnings
 
 # MODELS=
 from src.Models.EdgeTravel import EdgeTravel
@@ -13,9 +14,11 @@ from src.Preprocessing.DataPreprocessing import *
 from src.Preprocessing.EdgePreprocessing import *
 from src.Preprocessing.NodePreprocessing import *
 
+
 class Graph:
     def __init__(self, filepath, save_csvs=False, output_dir=None):
         # START TIMER:
+        warnings.simplefilter(action='ignore', category=FutureWarning)
         start_time = time.time()
 
         # READ THE FILE:
@@ -37,7 +40,7 @@ class Graph:
                 .reset_index(drop=True)
             nodes_passages = []
             for index_, row_ in node_passages_df.iterrows():
-                nodes_passages.append(NodePassage(row_['train'], row_['day'], row_['arr_time'], row_['stay_time']))
+                nodes_passages.append(NodePassage(row_['train'], int(row_['day']), row_['arr_time'], int(row_['stay_time'])))
             self.nodes.append(Node(row['st_id'], Position(row['lat'], row['lon']), nodes_passages))
         print("Nodes constructed.")
 
@@ -61,15 +64,27 @@ class Graph:
             travels = []
             for index_, row_ in edge_travels_df_.iterrows():
                 travels.append(
-                    EdgeTravel(row_['train_id'], row_['dep_st_id'], row_['day'], row_['dep_date'], row_['travel_time'],
+                    EdgeTravel(row_['train_id'], row_['dep_st_id'], int(row_['day']), row_['dep_date'], int(row_['travel_time']),
                                row_['arr_st_id']))
             # Create the edge:
-            edge = Edge(index, row['dep_st_id'], row['arr_st_id'], row['mileage'], travels)
+            edge = Edge(index, row['dep_st_id'], row['arr_st_id'], int(row['mileage']), travels)
             self.edges.append(edge)
         print("Edges constructed.")
 
         # END.
         print("Graph constructed in " + str(np.round((time.time() - start_time), 2)) + " seconds.")
+
+    # GETTERS:
+    def get_node_by_id(self, id):
+        for node in self.nodes:
+            if node.get_id() == id:
+                return node
+        return None
+    def get_edge_by_id(self, id):
+        for edge in self.edges:
+            if edge.get_id() == id:
+                return edge
+        return None
 
 
 def main():
