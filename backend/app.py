@@ -4,6 +4,8 @@ from flask import request
 from markupsafe import escape
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.graph_objects as go
+
 
 app = Flask(__name__)
 
@@ -30,8 +32,35 @@ def plot():
     col = request.args.get('mycolor')
     if not col: col = 'b'
     plt.plot(t1, f(t1, a, b), col)
-    plt.savefig("./static/myplot.png")
+    plt.savefig("./static/output/myplot.png")
     return render_template("plot.html")
+
+# DISCLAIMER
+# This code is only an example and is subject to be replaced/removed.
+# Feel free to use it as inspiration while it is still alive.
+@app.route('/plotly')
+def testing2():
+    fig = go.Figure(go.Scattermapbox(
+        mode="markers+lines",
+        lon=[10, 20, 30],
+        lat=[10, 20, 30],
+        marker={'size': 10}))
+
+    fig.add_trace(go.Scattermapbox(
+        mode="markers+lines",
+        lon=[-50, -60, 40],
+        lat=[30, 10, -20],
+        marker={'size': 10}))
+
+    fig.update_layout(
+        margin={'l': 0, 't': 0, 'b': 0, 'r': 0},
+        mapbox={
+            'center': {'lon': 10, 'lat': 10},
+            'style': "stamen-terrain",
+            'center': {'lon': -20, 'lat': -20},
+            'zoom': 1})
+    fig.write_html("static/output/dummy_plotly.html")
+    return render_template("plotly.html")
 
 
 if __name__ == '__main__':
