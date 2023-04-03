@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block addscript %}
+<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script>
+    $(function() {
+        $("#includeHtml").load("static/output/dummy_plotly.html");
+    });
+</script>
+{% endblock %}
+
+{% block graph %}
+<div id="includeHtml"></div>
+{% endblock %}
+
+{% block textform %}
+{% endblock %}
