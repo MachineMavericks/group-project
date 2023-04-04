@@ -3,6 +3,7 @@ import networkx as nx
 class NXGraph(nx.MultiGraph):
     def __init__(self, graph, dataset_number=1, day=None, save_gml=None, output_path=None):
         super().__init__()
+        print("Constructing the NXGraph using the Graph object...")
         # DATASET N°1 = RAILWAY.CSV
         if dataset_number == 1:
             regarded_days = [day_ for day_ in [1, 2, 3, 4] if day % day_ == 0] if day is not None else [1, 2, 3, 4]
@@ -52,12 +53,12 @@ class NXGraph(nx.MultiGraph):
             # Find each edge betweenness centrality, and add it as edge attributes:
             edge_betweenness_centrality = nx.edge_betweenness_centrality(self)
             nx.set_edge_attributes(self, edge_betweenness_centrality, 'betweenness_centrality')
-            if save_gml is not None:
-                nx.write_gml(self, output_path, stringizer=str)
-
         elif dataset_number == 2:
             # TODO: IMPLEMENT THIS.
             pass
+        if save_gml and output_path is not None:
+            nx.write_gml(self, output_path, stringizer=str)
+        print("NXGraph constructed.")
 
 def main():
     pass

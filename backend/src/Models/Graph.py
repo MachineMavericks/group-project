@@ -23,10 +23,10 @@ class Graph:
 
         # READ THE FILE:
         self.filepath = filepath
-        self.df = preprocessing_pipeline(pd.read_csv(filepath, low_memory=False), save_csv=save_csvs, path=output_dir + 'railway_pp.csv')
+        self.df = preprocessing_pipeline(pd.read_csv(filepath, low_memory=False), save_csv=save_csvs, path=((output_dir + 'railway.csv') if save_csvs and (output_dir is not None) else None))
 
         # TODO: NODES CONSTRUCTION:
-        df_ = nodes_preprocessing(self.df, save_csv=save_csvs, output_path=output_dir + 'nodes_pp.csv')
+        df_ = nodes_preprocessing(self.df, save_csv=save_csvs, output_path=((output_dir + 'nodes_pp.csv') if save_csvs and (output_dir is not None) else None))
         nodes_df = df_.copy()\
             .groupby(['st_id', 'lat', 'lon']).size().reset_index(name='count')\
             .sort_values(by=['st_id'], ascending=True)\
@@ -46,7 +46,7 @@ class Graph:
 
 
         # TODO: EDGES CONSTRUCTION:
-        df_ = edges_preprocessing(self.df, save_csv=True, path=output_dir + 'edges_pp.csv')
+        df_ = edges_preprocessing(self.df, save_csv=save_csvs, output_path=((output_dir + 'edges_pp.csv') if save_csvs and (output_dir is not None) else None))
         print("Constructing the edges...")
         edges_df = df_.copy()\
             .groupby(['dep_st_id', 'arr_st_id', 'mileage']).size().reset_index(name='count')\
