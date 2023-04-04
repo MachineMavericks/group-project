@@ -46,7 +46,6 @@ def node_passages_plt_heatmap(nxgraph, save_png=False):
         plt.savefig("resources/data/output/node_passages_heatmap.png", dpi=1200)
     plt.show()
 
-
 # HEATMAP - NODES_WEIGHT=TRAVELS - OUTPUT=PLT:
 def edge_travels_plt_heatmap(nxgraph, save_png=False):
     # Position of the nodes:
@@ -188,7 +187,6 @@ def plt_16_figure_onlydays_nxgraph(nxgraph):
 def nodes_whose_centrality_degree_is_greater_than(nx_graph, threshold):
     return [node for (node, deg) in nx_graph.degree() if deg > threshold]
 
-
 # ...
 def spatial_clustering(nx_graph):
     pos = {node[0]: (node[1]['lon'], node[1]['lat']) for node in nx_graph.nodes(data=True)}
@@ -219,7 +217,6 @@ def spatial_clustering(nx_graph):
     nx.draw_networkx_edges(nx_graph, pos, edge_color='black', width=0.2)
 
     plt.show()
-
 
 # ...
 """
@@ -266,7 +263,6 @@ def betweenness_clustering(nx_graph):
     #     print(f"Cluster {i}: {[nx_graph.nodes()[j] for j in range(len(clusters)) if clusters[j] == i]}")
 """
 
-
 # ...
 def find_communities(nx_graph):
     pos = {node[0]: (node[1]['lon'], node[1]['lat']) for node in nx_graph.nodes(data=True)}
@@ -278,3 +274,40 @@ def find_communities(nx_graph):
                                )
     # nx.draw_networkx_edges(nx_graph, pos=pos, edge_color='white', width=0.2)
     plt.show()
+
+# PLOTLY MINUTES HEATMAP:
+import plotly.express as px
+import pandas as pd
+import numpy as np
+def plotly_heatmap(nxgraph, day=None, component=None, metric=None, output_path=None):
+    min_minutes = min([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    max_minutes = max([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    median_minutes = np.median([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    avg_minutes = np.mean([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    vmin = min_minutes
+    vmax = median_minutes*5
+    data = []
+    for node in nxgraph.nodes(data=True):
+        id = node[0]
+        lat = np.round(node[1]['lat'], 2)
+        lon = np.round(node[1]['lon'], 2)
+        minutes = node[1]['total_minutes']
+        data.append([id, lat, lon, minutes])
+    df = pd.DataFrame(data, columns=['Node ID', 'Latitude', 'Longitude', 'Total Minutes'])
+    fig = px.density_mapbox(df, lat='Latitude', lon='Longitude', z='Total Minutes', radius=10, center=dict(lat=36, lon=117), zoom=5, mapbox_style="open-street-map", height=800,
+                            range_color=[vmin, vmax], hover_name='Node ID', hover_data=['Latitude', 'Longitude', 'Total Minutes'])
+    fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
+    fig.update_layout({
+        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
+        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
+        'modebar_bgcolor': 'rgba(0, 0, 0, 0)',
+        'margin': dict(l=0, r=0, t=30, b=0),
+        'coloraxis_colorbar': dict(titlefont=dict(color="white"),tickfont=dict(color="white"))
+    })
+    if output_path is not None:
+        fig.write_html(output_path)
+    # fig.show()
+    return fig
+
+
+
