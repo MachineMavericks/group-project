@@ -278,15 +278,34 @@ def find_communities(nx_graph):
 # PLOTLY MINUTES HEATMAP:
 import plotly.express as px
 import pandas as pd
-def plotly_heatmap_minutes(nxgraph):
+import numpy as np
+def plotly_heatmap(nxgraph, day=None, component=None, metric=None, output_path=None):
+    min_minutes = min([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    max_minutes = max([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    median_minutes = np.median([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    avg_minutes = np.mean([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    vmin = min_minutes
+    vmax = median_minutes*5
     data = []
     for node in nxgraph.nodes(data=True):
-        lon = node[1]['lon']
-        lat = node[1]['lat']
+        id = node[0]
+        lat = np.round(node[1]['lat'], 2)
+        lon = np.round(node[1]['lon'], 2)
         minutes = node[1]['total_minutes']
-        data.append([lon, lat, minutes])
-    df = pd.DataFrame(data, columns=['lon', 'lat', 'minutes'])
-    fig = px.density_mapbox(df, lat='lat', lon='lon', z='minutes', radius=10, center=dict(lat=36, lon=117), zoom=5, mapbox_style="open-street-map")
+        data.append([id, lat, lon, minutes])
+    df = pd.DataFrame(data, columns=['Node ID', 'Latitude', 'Longitude', 'Total Minutes'])
+    fig = px.density_mapbox(df, lat='Latitude', lon='Longitude', z='Total Minutes', radius=10, center=dict(lat=36, lon=117), zoom=5, mapbox_style="open-street-map", height=800,
+                            range_color=[vmin, vmax], hover_name='Node ID', hover_data=['Latitude', 'Longitude', 'Total Minutes'])
+    fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
+    fig.update_layout({
+        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
+        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
+        'modebar_bgcolor': 'rgba(0, 0, 0, 0)',
+        'margin': dict(l=0, r=0, t=30, b=0),
+        'coloraxis_colorbar': dict(titlefont=dict(color="white"),tickfont=dict(color="white"))
+    })
+    if output_path is not None:
+        fig.write_html(output_path)
     # fig.show()
     return fig
 

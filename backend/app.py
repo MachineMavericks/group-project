@@ -1,67 +1,57 @@
-from flask import Flask
-from flask import render_template
-from flask import request
-from markupsafe import escape
+# FLASK IMPORTS:
+from flask import Flask, render_template, request           # FLASK
+from flask_restx import Api                                 # REST-X API
+
+# PLOTLY IMPORTS:
+import plotly.graph_objs as go
+
+# DEFAULT IMPORTS:
 import matplotlib.pyplot as plt
 import numpy as np
-import plotly.graph_objects as go
+import os
 
+# MODELS=
+from src.Models.Graph import  *                             # GRAPH MODEL
+from src.Models.NXGraph import *                            # NXGRAPH MODEL
+# SERVICES=
+# ...
+# CONTROLLERS=
+from src.Controllers.GraphController import *               # GRAPH CONTROLLER
+from src.Controllers.NXGraphController import *             # NXGRAPH CONTROLLER
 
+if not os.path.isdir("static/output"):
+    os.mkdir("static/output")
+if not os.path.isfile("static/output/nxgraph.gml"):
+    nxgraph = NXGraph(Graph("static/input/railway.csv"), dataset_number=1, day=None, save_gml=True, output_path="static/output/nxgraph.gml")
+
+# FLASK APP:
 app = Flask(__name__)
+# BLUEPRINTS:
+app.register_blueprint(nxgraph_bp)
 
 
-@app.route('/')
+# REST-X API DOC/HANDLER:
+api = Api(app,
+          version='1.0',
+          title='Machine Mavericks ™ - API Documentation',
+          description='Official API Documentation for the Machine Mavericks Project.\n\nMade using RestX (Swagger) for Flask.\n\nCourtesy of: Hans Haller.',
+          doc='/swagger',
+          base_url='/api',
+          )
+# # ADD NAMESPACES TO API DOC:
+api.add_namespace(graph_ns)
+api.add_namespace(nxgraph_ns)
+
+
+@app.route('/index', methods=['GET', 'POST'])
 def hey():
     return render_template("base.html")
 
 
-# DISCLAIMER
-# This code is only an example and is subject to be replaced/removed.
-# Feel free to use it as inspiration while it is still alive.
-@app.route('/plot', methods=['GET', 'POST'])
-def plot():
-    plt.clf()
-
-    def f(t, aa, bb): return np.exp(-t) * np.cos(aa * np.pi * t) - bb
-
-    a = request.args.get('a', type=int)
-    if not a: a = 0
-    b = request.args.get('b', type=int)
-    if not b: b = 0
-    t1 = np.arange(0.0, 10.0, 0.01)
-    col = request.args.get('mycolor')
-    if not col: col = 'b'
-    plt.plot(t1, f(t1, a, b), col)
-    plt.savefig("./static/output/myplot.png")
-    return render_template("plot.html")
-
-# DISCLAIMER
-# This code is only an example and is subject to be replaced/removed.
-# Feel free to use it as inspiration while it is still alive.
-@app.route('/plotly')
-def testing2():
-    fig = go.Figure(go.Scattermapbox(
-        mode="markers+lines",
-        lon=[10, 20, 30],
-        lat=[10, 20, 30],
-        marker={'size': 10}))
-
-    fig.add_trace(go.Scattermapbox(
-        mode="markers+lines",
-        lon=[-50, -60, 40],
-        lat=[30, 10, -20],
-        marker={'size': 10}))
-
-    fig.update_layout(
-        margin={'l': 0, 't': 0, 'b': 0, 'r': 0},
-        mapbox={
-            'center': {'lon': 10, 'lat': 10},
-            'style': "stamen-terrain",
-            'center': {'lon': -20, 'lat': -20},
-            'zoom': 1})
-    fig.write_html("static/output/dummy_plotly.html")
-    return render_template("plotly.html")
-
-
+def main():
+    # START THE APP:
+    app.run(debug=True)
+    # START THE SWAGGER DOC:
+    api.init_app(app)
 if __name__ == '__main__':
-    app.run()
+    main()
