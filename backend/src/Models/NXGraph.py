@@ -1,5 +1,6 @@
 import networkx as nx
 
+
 class NXGraph(nx.MultiGraph):
     def __init__(self, graph, dataset_number=1, day=None, save_gml=None, output_path=None):
         super().__init__()
@@ -59,7 +60,10 @@ class NXGraph(nx.MultiGraph):
             # TODO: IMPLEMENT THIS.
             pass
 
+
 def main():
     pass
+
+
 if __name__ == "__main__":
     main()
