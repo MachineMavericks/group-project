@@ -49,4 +49,4 @@ def heatmap():
     metric = request.args.get('metric')
     nxgraph = nx.read_gml('static/output/nxgraph.gml')
     plotly_heatmap(nxgraph, day=day, component=component, metric=metric, output_path='static/output/plotly.html')
-    return render_template("base_plotly.html")
+    return render_template("filters_plotly.html")
