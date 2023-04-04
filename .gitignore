@@ -141,3 +141,4 @@ dmypy.json
 backend/src/data/output/
 backend/resources/data/output/
 backend/static/output/
+backend/static/data/output
