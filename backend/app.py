@@ -2,23 +2,12 @@
 from flask import Flask, render_template, request           # FLASK
 from flask_restx import Api                                 # REST-X API
 
-# PLOTLY IMPORTS:
-import plotly.graph_objs as go
-
 # DEFAULT IMPORTS:
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 
-# MODELS=
-from src.Models.Graph import  *                             # GRAPH MODEL
-from src.Models.NXGraph import *                            # NXGRAPH MODEL
-# SERVICES=
-# ...
 # CONTROLLERS=
 from src.Controllers.GraphController import *               # GRAPH CONTROLLER
 from src.Controllers.NXGraphController import *             # NXGRAPH CONTROLLER
-
 
 if not os.path.isdir("static/output"):
     print("Can't find output directory. Creating one now.")
@@ -52,7 +41,7 @@ api.add_namespace(nxgraph_ns)
 
 
 @app.route('/index', methods=['GET', 'POST'])
-def hey():
+def index():
     return render_template("base.html")
 
 

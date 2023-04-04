@@ -302,22 +302,43 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 def plotly_heatmap(nxgraph, day=None, component=None, metric=None, output_path=None):
-    min_minutes = min([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
-    max_minutes = max([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
-    median_minutes = np.median([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
-    avg_minutes = np.mean([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
-    vmin = min_minutes
-    vmax = median_minutes*5
-    data = []
-    for node in nxgraph.nodes(data=True):
-        id = node[0]
-        lat = np.round(node[1]['lat'], 2)
-        lon = np.round(node[1]['lon'], 2)
-        minutes = node[1]['total_minutes']
-        data.append([id, lat, lon, minutes])
-    df = pd.DataFrame(data, columns=['Node ID', 'Latitude', 'Longitude', 'Total Minutes'])
-    fig = px.density_mapbox(df, lat='Latitude', lon='Longitude', z='Total Minutes', radius=10, center=dict(lat=36, lon=117), zoom=5, mapbox_style="open-street-map", height=800,
-                            range_color=[vmin, vmax], hover_name='Node ID', hover_data=['Latitude', 'Longitude', 'Total Minutes'])
+    if metric == "degree_centrality":
+        min_degree = min([node[1]['degree_centrality'] for node in nxgraph.nodes(data=True)])
+        max_degree = max([node[1]['degree_centrality'] for node in nxgraph.nodes(data=True)])
+        median_degree = np.median([node[1]['degree_centrality'] for node in nxgraph.nodes(data=True)])
+        avg_degree = np.mean([node[1]['degree_centrality'] for node in nxgraph.nodes(data=True)])
+        vmin = min_degree
+        vmax = median_degree + 2 * (median_degree - min_degree)
+        data = []
+        for node in nxgraph.nodes(data=True):
+            id = node[0]
+            lat = np.round(node[1]['lat'], 2)
+            lon = np.round(node[1]['lon'], 2)
+            degree = node[1]['degree_centrality']
+            data.append([id, lat, lon, degree])
+        df = pd.DataFrame(data, columns=['Node ID', 'Latitude', 'Longitude', 'Degree Centrality'])
+        fig = px.density_mapbox(df, lat='Latitude', lon='Longitude', z='Degree Centrality', radius=10,
+                                center=dict(lat=36, lon=117), zoom=5, mapbox_style="open-street-map", height=800,
+                                range_color=[vmin, vmax], hover_name='Node ID',
+                                hover_data=['Latitude', 'Longitude', 'Degree Centrality'])
+    else:   # metric == "total_minutes"
+        min_minutes = min([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+        max_minutes = max([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+        median_minutes = np.median([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+        avg_minutes = np.mean([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+        vmin = min_minutes
+        vmax = median_minutes*5
+        data = []
+        for node in nxgraph.nodes(data=True):
+            id = node[0]
+            lat = np.round(node[1]['lat'], 2)
+            lon = np.round(node[1]['lon'], 2)
+            minutes = node[1]['total_minutes']
+            data.append([id, lat, lon, minutes])
+        df = pd.DataFrame(data, columns=['Node ID', 'Latitude', 'Longitude', 'Total Minutes'])
+        fig = px.density_mapbox(df, lat='Latitude', lon='Longitude', z='Total Minutes', radius=10, center=dict(lat=36, lon=117), zoom=5, mapbox_style="open-street-map", height=800,
+                                range_color=[vmin, vmax], hover_name='Node ID', hover_data=['Latitude', 'Longitude', 'Total Minutes'])
+    # GLOBAL SETTINGS:
     fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
     fig.update_layout({
         'plot_bgcolor': 'rgba(0, 0, 0, 0)',
