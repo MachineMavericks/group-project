@@ -29,7 +29,7 @@ class NXGraph(nx.MultiGraph):
                             u_for_edge=edge.get_fromNode(),
                             v_for_edge=edge.get_destNode(),
                             mileage=mileage,
-                            travels_amount=len(travels),
+                            total_travels=len(travels),
                             total_minutes=total_minutes,
                             total_mileage=total_mileage,
                             working_days=list(set([int(travel.get_day()) for travel in edge.get_travels()]))

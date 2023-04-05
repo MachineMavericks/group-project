@@ -43,8 +43,13 @@ class NXGraphNodeNS(Resource):
     def put(self, id):
         pass
 
+@nxgraph_bp.route('/default', methods=['GET', 'POST'])
+def default():
+    plotly_default(pickle_path=pickle_filepath, output_path='static/output/plotly.html', day=request.args.get('day'))
+    return render_template("default_plotly.html")
+
 # BLUEPRINT ROUTES:
 @nxgraph_bp.route('/heatmap', methods=['GET', 'POST'])
 def heatmap():
     plotly_heatmap(pickle_path=pickle_filepath, day=request.args.get('day'), component=request.args.get('component'), metric=request.args.get('metric'), output_path='static/output/plotly.html')
-    return render_template("filters_plotly.html")
+    return render_template("heatmap_plotly.html")
