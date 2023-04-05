@@ -1,10 +1,12 @@
 # FLASK IMPORTS:
 from flask import Flask, Blueprint, render_template, request           # FLASK
 from flask_restx import Namespace, Resource                 # REST-X API
-# DEFAULT IMPORTS:
-import networkx as nx
+
 # SERVICES=
 from src.Services.NXGraphService import *                   # NXGRAPH SERVICE
+
+# SETTINGS=
+pickle_filepath = "static/output/graph.pickle"
 
 # NXGRAPH CONTROLLER/NAMESPACE:
 nxgraph_ns = Namespace('nxgraph', description='NXGraph', path='/api/nxgraph')
@@ -44,9 +46,5 @@ class NXGraphNodeNS(Resource):
 # BLUEPRINT ROUTES:
 @nxgraph_bp.route('/heatmap', methods=['GET', 'POST'])
 def heatmap():
-    day = request.args.get('day')
-    component = request.args.get('component')
-    metric = request.args.get('metric')
-    nxgraph = nx.read_gml('static/output/nxgraph.gml')
-    plotly_heatmap(nxgraph, day=day, component=component, metric=metric, output_path='static/output/plotly.html')
+    plotly_heatmap(pickle_path=pickle_filepath, day=request.args.get('day'), component=request.args.get('component'), metric=request.args.get('metric'), output_path='static/output/plotly.html')
     return render_template("filters_plotly.html")

@@ -7,14 +7,18 @@
                onfocus="focused(this)" onfocusout="defocused(this)">
     </div>
     <div class="col">
-        <select class="col form-select btn-outline-light bg-gray-800 mt-3" name="component" id="component">
-            <option value="minutes">Minutes</option>
+        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="component" id="component">
+            <option value="edge">Edge</option>
+            <option value="node">Node</option>
         </select>
     </div>
     <div class="col">
-        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="metric" id="metric">
-            <option value="edge">Edge</option>
-            <option value="node">Node</option>
+        <select class="col form-select btn-outline-light bg-gray-800 mt-3" name="metric" id="metric">
+            <option value="total_minutes">Total minutes</option>
+            <option value="total_passages">Total passages</option>
+            <option value="degree_centrality">Degree Centrality</option>
+            <option value="betweenness_centrality">Betweenness Centrality</option>
+            <option value="closeness_centrality">Closeness Centrality</option>
         </select>
     </div>
     <div class="col">
