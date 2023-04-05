@@ -3,10 +3,17 @@
 {% block filters %}
 <form class="row">
     <div class="col">
-        <input type="day" name="day" id="day" class="col form-control btn-outline-white bg-gray-800 mt-3 text-white" placeholder="Day"
-               onfocus="focused(this)" onfocusout="defocused(this)">
+        <select class="col form-select btn-outline-light bg-gray-800 mt-3" name="component" id="component">
+            <option value="nodes">Nodes only</option>
+            <option value="edges">Edges only</option>
+            <option value="nodes_and_edges">Nodes and Edges</option>
+        </select>
     </div>
     <div class="col">
+        <input type="day" name="day" id="day" class="col form-control bg-gray-800 mt-3 text-white" placeholder="Day"
+               onfocus="focused(this)" onfocusout="defocused(this)">
+    </div>
+    <div class="col max-width-200">
         <button class="btn btn-outline-light mt-3 text-bold" type="submit">Compute</button>
     </div>
 </form>
