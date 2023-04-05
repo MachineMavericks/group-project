@@ -13,6 +13,8 @@ from src.Models.Graph import Graph
 import warnings
 warnings.filterwarnings("ignore")
 
+# TODO: wrap duplicated code fragments to single helper function
+
 # HEATMAP - NODES_WEIGHT=PASSAGE - OUTPUT=PLT:
 def node_passages_plt_heatmap(nxgraph, save_png=False):
     # Position of the nodes:
