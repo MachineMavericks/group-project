@@ -43,6 +43,7 @@ def average_shortest_path_length_ratio(original_graph, attacked_graph):
 
 
 def global_efficiency_ratio(original_graph, attacked_graph):
+    # TODO: specify weights as it currently considers all edges are single unit weighted
     return nx.global_efficiency(attacked_graph) / nx.global_efficiency(original_graph)
 
 
