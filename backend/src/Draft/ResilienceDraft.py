@@ -95,11 +95,8 @@ def targeted_attack(nx_graph, metric='degree-centrality', fraction=0.01):
 
 # TESTING
 def main():
-    # graph = Graph("../../resources/data/input/railway.csv", save_csvs=True, output_dir="../../resources/data/output/")
-    # nxg = NXGraph(graph)
-    # nx.write_gml(nxg, "../../resources/data/output/nx_graph.gml", stringizer=str)
-    nxg = nx.read_gml("../../resources/data/output/nx_graph.gml")
-    targeted_attack(nxg)
+    nxgraph = NXGraph(pickle_path="../../resources/data/output/graph.pickle", dataset_number=1, day=None)
+    targeted_attack(nxgraph)
 
 
 if __name__ == "__main__":

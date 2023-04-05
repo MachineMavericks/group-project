@@ -58,8 +58,6 @@ class NXGraph(nx.MultiGraph):
             if save_gml and output_path is not None:
                 nx.write_gml(self, output_path, stringizer=str)
             print("NXGraph constructed in {} seconds.".format(round(time.time() - start, 2)))
-        else:
-            print("No Graph object or pickle file provided. Can't construct the NXGraph.")
 
 
 def main():
