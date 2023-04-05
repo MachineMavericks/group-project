@@ -5,6 +5,9 @@ from flask_restx import Namespace, Resource                 # REST-X API
 # SERVICES=
 from src.Services.NXGraphService import *                   # NXGRAPH SERVICE
 
+# SETTINGS=
+pickle_filepath = "static/output/graph.pickle"
+
 # NXGRAPH CONTROLLER/NAMESPACE:
 nxgraph_ns = Namespace('nxgraph', description='NXGraph', path='/api/nxgraph')
 
@@ -43,6 +46,5 @@ class NXGraphNodeNS(Resource):
 # BLUEPRINT ROUTES:
 @nxgraph_bp.route('/heatmap', methods=['GET', 'POST'])
 def heatmap():
-    nxgraph = nx.read_gml('static/output/nxgraph.gml')
-    plotly_heatmap(nxgraph, day=request.args.get('day'), component=request.args.get('component'), metric=request.args.get('metric'), output_path='static/output/plotly.html')
+    plotly_heatmap(pickle_path=pickle_filepath, day=request.args.get('day'), component=request.args.get('component'), metric=request.args.get('metric'), output_path='static/output/plotly.html')
     return render_template("filters_plotly.html")

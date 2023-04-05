@@ -1,31 +1,28 @@
+# DEFAULT IMPORTS:
+import os                                                   # OS
 # FLASK IMPORTS:
 from flask import Flask, render_template, request           # FLASK
 from flask_restx import Api                                 # REST-X API
-
-# DEFAULT IMPORTS:
-import os
-
+# MODELS=
+from src.Models.Graph import Graph                          # GRAPH
+from src.Models.NXGraph import NXGraph                      # NXGRAPH
 # CONTROLLERS=
 from src.Controllers.GraphController import *               # GRAPH CONTROLLER
 from src.Controllers.NXGraphController import *             # NXGRAPH CONTROLLER
 
-if not os.path.isdir("static/output"):
-    print("Can't find output directory. Creating one now.")
-    os.mkdir("static/output")
-else:
-    print("Found existing output directory.")
-if not os.path.isfile("static/output/nxgraph.gml"):
-    print("Can't find nxgraph.gml file. Creating one now.")
-    nxgraph = NXGraph(Graph("static/input/railway.csv"), dataset_number=1, day=None, save_gml=True, output_path="static/output/nxgraph.gml")
-    print("Saved nxgraph.gml file.")
-else:
-    print("Found existing nxgraph.gml file.")
+# PATHS=
+input_dir = "static/input/"
+output_dir = "static/output/"
+os.mkdir(output_dir) and print("Can't find output directory. Creating one now.") \
+    if not os.path.isdir(output_dir) else print("Found existing output directory.")
+
+# GRAPH/NXGRAPH OBJECTS CONSTRUCTION -> SAVE TO PICKLE:
+graph = Graph(filepath=input_dir+"railway.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
 
 # FLASK APP:
 app = Flask(__name__)
 # BLUEPRINTS:
 app.register_blueprint(nxgraph_bp)
-
 
 # REST-X API DOC/HANDLER:
 api = Api(app,
@@ -35,15 +32,14 @@ api = Api(app,
           doc='/swagger',
           base_url='/api',
           )
-# # ADD NAMESPACES TO API DOC:
+# ADD NAMESPACES TO API DOC:
 api.add_namespace(graph_ns)
 api.add_namespace(nxgraph_ns)
 
-
+# INDEX ROUTE:
 @app.route('/index', methods=['GET', 'POST'])
 def index():
     return render_template("base.html")
-
 
 def main():
     # START THE APP:

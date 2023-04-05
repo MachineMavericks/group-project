@@ -2,6 +2,8 @@
 import time as time
 import numpy as np
 import warnings
+import os
+import pickle
 
 # MODELS=
 from src.Models.EdgeTravel import EdgeTravel
@@ -16,64 +18,79 @@ from src.Preprocessing.NodePreprocessing import *
 
 
 class Graph:
-    def __init__(self, filepath, save_csvs=False, output_dir=None):
-        # START TIMER:
-        warnings.simplefilter(action='ignore', category=FutureWarning)
-        start_time = time.time()
+    def __init__(self, filepath, output_dir=None, save_csvs=False, save_pickle=False):
+        if os.path.isfile(output_dir + "graph.pickle"):
+            print("Found already existing graph.pickle file.")
+            print("Redundant graph construction aborted.")
+        else:
+            # START TIMER:
+            warnings.simplefilter(action='ignore', category=FutureWarning)
+            start_time = time.time()
 
-        # READ THE FILE:
-        self.filepath = filepath
-        self.df = preprocessing_pipeline(pd.read_csv(filepath, low_memory=False), save_csv=save_csvs, path=((output_dir + 'railway.csv') if save_csvs and (output_dir is not None) else None))
+            # READ THE FILE:
+            self.filepath = filepath
+            self.df = preprocessing_pipeline(pd.read_csv(filepath, low_memory=False), save_csv=save_csvs, path=((output_dir + 'railway.csv') if save_csvs and (output_dir is not None) else None))\
+                if not os.path.isfile(output_dir + 'railway_pp.csv') else pd.read_csv(output_dir + 'railway_pp.csv', low_memory=False)
 
-        # TODO: NODES CONSTRUCTION:
-        df_ = nodes_preprocessing(self.df, save_csv=save_csvs, output_path=((output_dir + 'nodes_pp.csv') if save_csvs and (output_dir is not None) else None))
-        nodes_df = df_.copy()\
-            .groupby(['st_id', 'lat', 'lon']).size().reset_index(name='count')\
-            .sort_values(by=['st_id'], ascending=True)\
-            .reset_index(drop=True)
-        nodes_passages_df = df_.copy()
-        print("Constructing the nodes...")
-        self.nodes = []
-        for index, row in nodes_df.iterrows():
-            node_passages_df = nodes_passages_df[(nodes_passages_df['st_id'] == row['st_id'])] \
-                .sort_values(by=['arr_time'], ascending=True) \
+            print("Constructing the Graph using the preprocessed data...")
+
+            # NODES CONSTRUCTION:
+            df_ = nodes_preprocessing(self.df, save_csv=save_csvs, output_path=((output_dir + 'nodes_pp.csv') if save_csvs and (output_dir is not None) else None))\
+                if not os.path.isfile(output_dir + 'nodes_pp.csv') else pd.read_csv(output_dir + 'nodes_pp.csv', low_memory=False)
+            nodes_df = df_.copy()\
+                .groupby(['st_id', 'lat', 'lon']).size().reset_index(name='count')\
+                .sort_values(by=['st_id'], ascending=True)\
                 .reset_index(drop=True)
-            nodes_passages = []
-            for index_, row_ in node_passages_df.iterrows():
-                nodes_passages.append(
-                    NodePassage(row_['train'], int(row_['day']), row_['arr_time'], int(row_['stay_time'])))
-            self.nodes.append(Node(row['st_id'], Position(row['lat'], row['lon']), nodes_passages))
-        print("Nodes constructed.")
+            nodes_passages_df = df_.copy()
+            print("Constructing the nodes...")
+            self.nodes = []
+            for index, row in nodes_df.iterrows():
+                node_passages_df = nodes_passages_df[(nodes_passages_df['st_id'] == row['st_id'])] \
+                    .sort_values(by=['arr_time'], ascending=True) \
+                    .reset_index(drop=True)
+                nodes_passages = []
+                for index_, row_ in node_passages_df.iterrows():
+                    nodes_passages.append(
+                        NodePassage(row_['train'], int(row_['day']), row_['arr_time'], int(row_['stay_time'])))
+                self.nodes.append(Node(row['st_id'], Position(row['lat'], row['lon']), nodes_passages))
+            print("Nodes constructed.")
 
-        # TODO: EDGES CONSTRUCTION:
-        df_ = edges_preprocessing(self.df, save_csv=save_csvs, output_path=((output_dir + 'edges_pp.csv') if save_csvs and (output_dir is not None) else None))
-        print("Constructing the edges...")
-        edges_df = df_.copy() \
-            .groupby(['dep_st_id', 'arr_st_id', 'mileage']).size().reset_index(name='count') \
-            .sort_values(by=['dep_st_id', 'arr_st_id', 'mileage'], ascending=True) \
-            .reset_index(drop=True)
-        edge_travels_df = df_.copy()
-
-        self.edges = []
-        for index, row in edges_df.iterrows():
-            edge_travels_df_ = edge_travels_df[(edge_travels_df['dep_st_id'] == row['dep_st_id'])
-                                               & (edge_travels_df['arr_st_id'] == row['arr_st_id'])
-                                               & (edge_travels_df['mileage'] == row['mileage'])] \
-                .sort_values(by=['dep_date'], ascending=True) \
+            # EDGES CONSTRUCTION:
+            df_ = edges_preprocessing(self.df, save_csv=save_csvs, output_path=((output_dir + 'edges_pp.csv') if save_csvs and (output_dir is not None) else None))\
+                if not os.path.isfile(output_dir + 'edges_pp.csv') else pd.read_csv(output_dir + 'edges_pp.csv', low_memory=False)
+            print("Constructing the edges...")
+            edges_df = df_.copy() \
+                .groupby(['dep_st_id', 'arr_st_id', 'mileage']).size().reset_index(name='count') \
+                .sort_values(by=['dep_st_id', 'arr_st_id', 'mileage'], ascending=True) \
                 .reset_index(drop=True)
-            travels = []
-            for index_, row_ in edge_travels_df_.iterrows():
-                travels.append(
-                    EdgeTravel(row_['train_id'], row_['dep_st_id'], int(row_['day']), row_['dep_date'],
-                               int(row_['travel_time']),
-                               row_['arr_st_id']))
-            # Create the edge:
-            edge = Edge(index, row['dep_st_id'], row['arr_st_id'], int(row['mileage']), travels)
-            self.edges.append(edge)
-        print("Edges constructed.")
+            edge_travels_df = df_.copy()
 
-        # END.
-        print("Graph constructed in " + str(np.round((time.time() - start_time), 2)) + " seconds.")
+            self.edges = []
+            for index, row in edges_df.iterrows():
+                edge_travels_df_ = edge_travels_df[(edge_travels_df['dep_st_id'] == row['dep_st_id'])
+                                                   & (edge_travels_df['arr_st_id'] == row['arr_st_id'])
+                                                   & (edge_travels_df['mileage'] == row['mileage'])] \
+                    .sort_values(by=['dep_date'], ascending=True) \
+                    .reset_index(drop=True)
+                travels = []
+                for index_, row_ in edge_travels_df_.iterrows():
+                    travels.append(
+                        EdgeTravel(row_['train_id'], row_['dep_st_id'], int(row_['day']), row_['dep_date'],
+                                   int(row_['travel_time']),
+                                   row_['arr_st_id']))
+                # Create the edge:
+                edge = Edge(index, row['dep_st_id'], row['arr_st_id'], int(row['mileage']), travels)
+                self.edges.append(edge)
+            print("Edges constructed.")
+
+            # END.
+            print("Graph constructed in " + str(np.round((time.time() - start_time), 2)) + " seconds.")
+
+            # SAVE THE GRAPH:
+            if save_pickle and (output_dir is not None):
+                with open(output_dir+"graph.pickle", "wb") as f:
+                    pickle.dump(self, f)
+                print("Graph saved in " + output_dir + "graph.pickle")
 
     # GETTERS:
     def get_node_by_id(self, id):
