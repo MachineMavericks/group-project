@@ -31,7 +31,7 @@ def find_mileages_differences(df_):
                 edge_mileages.append(row['mileage'])
 
 
-def edges_preprocessing(df, save_csv=False, path=None):
+def edges_preprocessing(df, save_csv=False, output_path=None):
     print("Preprocessing the edges dataframe...")
     # STEP 1: EDGES CONSTRUCTION: CONVERT TRAINS STOPS TO EDGES TRAVELS:
     edgesPassages = {}
@@ -105,8 +105,8 @@ def edges_preprocessing(df, save_csv=False, path=None):
                     df_.loc[i, 'mileage'] = mileage
     df_ = df_.sort_values(by=['dep_st_id', 'arr_st_id', 'mileage'], ascending=True)\
         .reset_index(drop=True)
-    if save_csv:
-        df_.to_csv(path, index=False)
-        print("Edges dataframe saved in: " + path)
+    if save_csv and output_path is not None:
+        df_.to_csv(output_path, index=False)
+        print("Edges dataframe saved in: " + output_path)
     print("Edges dataframe preprocessed.")
     return df_

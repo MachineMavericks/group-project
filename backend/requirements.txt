@@ -124,3 +124,6 @@ webencodings==0.5.1
 websocket-client==1.5.1
 Werkzeug==2.2.3
 widgetsnbextension==4.0.5
+
+kneed~=0.8.2
+tqdm~=4.65.0

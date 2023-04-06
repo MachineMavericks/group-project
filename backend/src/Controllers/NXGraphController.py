@@ -1,15 +1,20 @@
 # FLASK IMPORTS:
-from flask_restx import Namespace, Resource
-
-# MODELS=
-from src.Models import NXGraph as NXG
+from flask import Flask, Blueprint, render_template, request           # FLASK
+from flask_restx import Namespace, Resource                 # REST-X API
+# DEFAULT IMPORTS:
+import networkx as nx
+# SERVICES=
+from src.Services.NXGraphService import *                   # NXGRAPH SERVICE
 
 # NXGRAPH CONTROLLER/NAMESPACE:
-nxgraph_ns = Namespace('nxgraph', description='NXGraph', path='/nxgraph')
+nxgraph_ns = Namespace('nxgraph', description='NXGraph', path='/api/nxgraph')
 
+# BLUEPRINT:
+nxgraph_bp = Blueprint('nxgraph_bp', __name__, template_folder='templates')
 
+# API ROUTES:
 @nxgraph_ns.route('/')
-class NXGraph(Resource):
+class NXGraphNS(Resource):
     def post(self):
         pass
 
@@ -22,9 +27,8 @@ class NXGraph(Resource):
     def put(self):
         pass
 
-
 @nxgraph_ns.route('/node/<int:id>')
-class NXGraphNode(Resource):
+class NXGraphNodeNS(Resource):
     def post(self, id):
         pass
 
@@ -36,3 +40,13 @@ class NXGraphNode(Resource):
 
     def put(self, id):
         pass
+
+# BLUEPRINT ROUTES:
+@nxgraph_bp.route('/heatmap', methods=['GET', 'POST'])
+def heatmap():
+    day = request.args.get('day')
+    component = request.args.get('component')
+    metric = request.args.get('metric')
+    nxgraph = nx.read_gml('static/output/nxgraph.gml')
+    plotly_heatmap(nxgraph, day=day, component=component, metric=metric, output_path='static/output/plotly.html')
+    return render_template("filters_plotly.html")

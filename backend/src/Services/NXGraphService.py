@@ -4,29 +4,29 @@ from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 import networkx as nx
 from kneed import KneeLocator
-import warnings
 
 # MODELS=
 from src.Models.NXGraph import NXGraph
 from src.Models.Graph import Graph
 
 # WARNINGS=
+import warnings
+
 warnings.filterwarnings("ignore")
 
 
-# MATPLOTLIB:
 # HEATMAP - NODES_WEIGHT=PASSAGE - OUTPUT=PLT:
 def node_passages_plt_heatmap(nxgraph, save_png=False):
     # Position of the nodes:
     pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
-    max_weight = max([nxgraph.nodes[node]['weight'] for node in nxgraph.nodes])
-    min_weight = min([nxgraph.nodes[node]['weight'] for node in nxgraph.nodes])
-    average_weight = sum([nxgraph.nodes[node]['weight'] for node in nxgraph.nodes]) / len(nxgraph.nodes)
-    median_weight = sorted([nxgraph.nodes[node]['weight'] for node in nxgraph.nodes])[len(nxgraph.nodes) // 2]
+    max_weight = max([nxgraph.nodes[node]['total_minutes'] for node in nxgraph.nodes])
+    min_weight = min([nxgraph.nodes[node]['total_minutes'] for node in nxgraph.nodes])
+    average_weight = sum([nxgraph.nodes[node]['total_minutes'] for node in nxgraph.nodes]) / len(nxgraph.nodes)
+    median_weight = sorted([nxgraph.nodes[node]['total_minutes'] for node in nxgraph.nodes])[len(nxgraph.nodes) // 2]
     min_node_size = 1
     max_node_size = 4
     vmin = min_weight
-    vmax = median_weight*5
+    vmax = median_weight * 5
     # Add the legend:
     plt.colorbar(plt.cm.ScalarMappable(
         cmap=plt.cm.coolwarm,
@@ -37,8 +37,10 @@ def node_passages_plt_heatmap(nxgraph, save_png=False):
     nx.draw_networkx_nodes(
         G=nxgraph,
         pos=pos,
-        node_size=[min_node_size + (max_node_size - min_node_size) * (nxgraph.nodes[node]['weight'] - min_weight) / (max_weight - min_weight) for node in nxgraph.nodes],
-        node_color=[nxgraph.nodes[node]['weight'] for node in nxgraph.nodes],
+        node_size=[
+            min_node_size + (max_node_size - min_node_size) * (nxgraph.nodes[node]['total_minutes'] - min_weight) / (
+                        max_weight - min_weight) for node in nxgraph.nodes],
+        node_color=[nxgraph.nodes[node]['total_minutes'] for node in nxgraph.nodes],
         cmap=plt.cm.coolwarm,
         vmin=vmin,
         vmax=vmax)
@@ -52,12 +54,12 @@ def edge_travels_plt_heatmap(nxgraph, save_png=False):
     # Position of the nodes:
     pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
     # Heatmap using the edges's weight as the color (use a red colormap)
-    max_weight = max([nxgraph.edges[edge]['weight'] for edge in nxgraph.edges])
-    min_weight = min([nxgraph.edges[edge]['weight'] for edge in nxgraph.edges])
-    average_weight = sum([nxgraph.edges[edge]['weight'] for edge in nxgraph.edges]) / len(nxgraph.edges)
-    median_weight = sorted([nxgraph.edges[edge]['weight'] for edge in nxgraph.edges])[len(nxgraph.edges) // 2]
+    max_weight = max([nxgraph.edges[edge]['total_minutes'] for edge in nxgraph.edges])
+    min_weight = min([nxgraph.edges[edge]['total_minutes'] for edge in nxgraph.edges])
+    average_weight = sum([nxgraph.edges[edge]['total_minutes'] for edge in nxgraph.edges]) / len(nxgraph.edges)
+    median_weight = sorted([nxgraph.edges[edge]['total_minutes'] for edge in nxgraph.edges])[len(nxgraph.edges) // 2]
     vmin = min_weight
-    vmax = median_weight*5
+    vmax = median_weight * 5
     # Add the legend:
     plt.colorbar(plt.cm.ScalarMappable(
         cmap=plt.cm.coolwarm,
@@ -68,7 +70,7 @@ def edge_travels_plt_heatmap(nxgraph, save_png=False):
     nx.draw_networkx_edges(
         G=nxgraph,
         pos=pos,
-        edge_color=[nxgraph.edges[edge]['weight'] for edge in nxgraph.edges],
+        edge_color=[nxgraph.edges[edge]['total_minutes'] for edge in nxgraph.edges],
         edge_cmap=plt.cm.coolwarm,
         edge_vmin=vmin,
         edge_vmax=vmax,
@@ -77,6 +79,131 @@ def edge_travels_plt_heatmap(nxgraph, save_png=False):
         # Save the figure as a png:
         plt.savefig("resources/data/output/edge_travels_heatmap.png", dpi=1200)
     plt.show()
+
+
+# DAY-BY-DAY (PLOT) - AT LEAST DAY N
+def plt_atleast_day_n_nxgraph(nxgraph, day_n):
+    # selected_nodes = [node for node in nxgraph.nodes if day_n in nxgraph.nodes[node]['working_days']]
+    selected_edges = [edge for edge in nxgraph.edges if day_n in nxgraph.edges[edge]['working_days']]
+    # Find nodes that are connected to selected edges:
+    selected_nodes = []
+    for edge in selected_edges:
+        selected_nodes.append(edge[0])
+        selected_nodes.append(edge[1])
+    selected_nodes = list(set(selected_nodes))
+    pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
+    nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r')
+    nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black')
+    plt.title("Rails working at least on day {}".format(day_n))
+    plt.show()
+
+
+# DAY-BY-DAY (PLOT) - ONLY DAY N
+def plt_only_day_n_nxgraph(nxgraph, day_n):
+    # selected_nodes = [node for node in nxgraph.nodes if day_n in nxgraph.nodes[node]['working_days'] and len(
+    # nxgraph.nodes[node]['working_days']) == 1]
+    selected_edges = [edge for edge in nxgraph.edges if
+                      day_n in nxgraph.edges[edge]['working_days'] and len(nxgraph.edges[edge]['working_days']) == 1]
+    # Find nodes that are connected to selected edges:
+    selected_nodes = []
+    for edge in selected_edges:
+        selected_nodes.append(edge[0])
+        selected_nodes.append(edge[1])
+    selected_nodes = list(set(selected_nodes))
+    pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
+    nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r')
+    nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black')
+    plt.title("Rails working only on day {}".format(day_n))
+    plt.show()
+
+
+# DAY-BY-DAY (PLOT) - AT LEAST DAYS N
+def plt_atleast_days_n_nxgraph(nxgraph, days_n):
+    # selected_nodes = [node for node in nxgraph.nodes if all(day_n in nxgraph.nodes[node]['working_days'] for day_n
+    # in days_n)]
+    selected_edges = [edge for edge in nxgraph.edges if
+                      all(day_n in nxgraph.edges[edge]['working_days'] for day_n in days_n)]
+    # Find nodes that are connected to selected edges:
+    selected_nodes = []
+    for edge in selected_edges:
+        selected_nodes.append(edge[0])
+        selected_nodes.append(edge[1])
+    selected_nodes = list(set(selected_nodes))
+    pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
+    nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r')
+    nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black')
+    plt.title("Rails working at least on days {}".format(days_n))
+    plt.show()
+
+
+# DAY-BY-DAY (PLOT) - ONLY DAYS N
+def plt_only_days_n_nxgraph(nxgraph, days_n):
+    # selected_nodes = [node for node in nxgraph.nodes if all(day_n in nxgraph.nodes[node]['working_days'] for day_n
+    # in days_n) and len(nxgraph.nodes[node]['working_days']) == len(days_n)]
+    selected_edges = [edge for edge in nxgraph.edges if
+                      all(day_n in nxgraph.edges[edge]['working_days'] for day_n in days_n) and len(
+                          nxgraph.edges[edge]['working_days']) == len(days_n)]
+    # Find nodes that are connected to selected edges:
+    selected_nodes = []
+    for edge in selected_edges:
+        selected_nodes.append(edge[0])
+        selected_nodes.append(edge[1])
+    selected_nodes = list(set(selected_nodes))
+    pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
+    nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r')
+    nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black')
+    plt.title("Rails working only on days {}".format(days_n))
+    plt.show()
+
+
+# DAY-BY-DAY (PLOT) - AT LEAST DAYS N - 4x4
+def plt_16_figure_atleastdays_nxgraph(nxgraph):
+    # Plot a 4x4 figure with all combinations of days
+    fig, axs = plt.subplots(4, 4, figsize=(20, 20))
+    for i in range(4):
+        for j in range(4):
+            days_n = [1, 2, 3, 4][:i + j + 1]
+            # selected_nodes = [node for node in nxgraph.nodes if all(day_n in nxgraph.nodes[node]['working_days']
+            # for day_n in days_n)]
+            selected_edges = [edge for edge in nxgraph.edges if
+                              all(day_n in nxgraph.edges[edge]['working_days'] for day_n in days_n)]
+            # Find nodes that are connected to selected edges:
+            selected_nodes = []
+            for edge in selected_edges:
+                selected_nodes.append(edge[0])
+                selected_nodes.append(edge[1])
+            selected_nodes = list(set(selected_nodes))
+            pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
+            nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r', ax=axs[i, j])
+            nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black', ax=axs[i, j])
+            axs[i, j].set_title("Rails working at least on days {}".format(days_n))
+    plt.show()
+
+
+# DAY-BY-DAY (PLOT) - ONLY DAYS N - 4x4
+def plt_16_figure_onlydays_nxgraph(nxgraph):
+    # Plot a 4x4 figure with all combinations of days
+    fig, axs = plt.subplots(4, 4, figsize=(20, 20))
+    for i in range(4):
+        for j in range(4):
+            days_n = [1, 2, 3, 4][:i + j + 1]
+            # selected_nodes = [node for node in nxgraph.nodes if all(day_n in nxgraph.nodes[node]['working_days']
+            # for day_n in days_n) and len(nxgraph.nodes[node]['working_days']) == len(days_n)]
+            selected_edges = [edge for edge in nxgraph.edges if
+                              all(day_n in nxgraph.edges[edge]['working_days'] for day_n in days_n) and len(
+                                  nxgraph.edges[edge]['working_days']) == len(days_n)]
+            # Find nodes that are connected to selected edges:
+            selected_nodes = []
+            for edge in selected_edges:
+                selected_nodes.append(edge[0])
+                selected_nodes.append(edge[1])
+            selected_nodes = list(set(selected_nodes))
+            pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
+            nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r', ax=axs[i, j])
+            nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black', ax=axs[i, j])
+            axs[i, j].set_title("Rails working only on days {}".format(days_n))
+    plt.show()
+
 
 # ...
 def nodes_whose_centrality_degree_is_greater_than(nx_graph, threshold):
@@ -170,119 +297,39 @@ def find_communities(nx_graph):
     # nx.draw_networkx_edges(nx_graph, pos=pos, edge_color='white', width=0.2)
     plt.show()
 
+# PLOTLY MINUTES HEATMAP:
+import plotly.express as px
+import pandas as pd
+import numpy as np
+def plotly_heatmap(nxgraph, day=None, component=None, metric=None, output_path=None):
+    min_minutes = min([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    max_minutes = max([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    median_minutes = np.median([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    avg_minutes = np.mean([node[1]['total_minutes'] for node in nxgraph.nodes(data=True)])
+    vmin = min_minutes
+    vmax = median_minutes*5
+    data = []
+    for node in nxgraph.nodes(data=True):
+        id = node[0]
+        lat = np.round(node[1]['lat'], 2)
+        lon = np.round(node[1]['lon'], 2)
+        minutes = node[1]['total_minutes']
+        data.append([id, lat, lon, minutes])
+    df = pd.DataFrame(data, columns=['Node ID', 'Latitude', 'Longitude', 'Total Minutes'])
+    fig = px.density_mapbox(df, lat='Latitude', lon='Longitude', z='Total Minutes', radius=10, center=dict(lat=36, lon=117), zoom=5, mapbox_style="open-street-map", height=800,
+                            range_color=[vmin, vmax], hover_name='Node ID', hover_data=['Latitude', 'Longitude', 'Total Minutes'])
+    fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
+    fig.update_layout({
+        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
+        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
+        'modebar_bgcolor': 'rgba(0, 0, 0, 0)',
+        'margin': dict(l=0, r=0, t=30, b=0),
+        'coloraxis_colorbar': dict(titlefont=dict(color="white"),tickfont=dict(color="white"))
+    })
+    if output_path is not None:
+        fig.write_html(output_path)
+    # fig.show()
+    return fig
 
 
-def plt_atleast_day_n_nxgraph(nxgraph, day_n):
-    # selected_nodes = [node for node in nxgraph.nodes if day_n in nxgraph.nodes[node]['working_days']]
-    selected_edges = [edge for edge in nxgraph.edges if day_n in nxgraph.edges[edge]['working_days']]
-    # Find nodes that are connected to selected edges:
-    selected_nodes = []
-    for edge in selected_edges:
-        selected_nodes.append(edge[0])
-        selected_nodes.append(edge[1])
-    selected_nodes = list(set(selected_nodes))
-    pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
-    nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r')
-    nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black')
-    plt.title("Rails working at least on day {}".format(day_n))
-    plt.show()
 
-def plt_only_day_n_nxgraph(nxgraph, day_n):
-    # selected_nodes = [node for node in nxgraph.nodes if day_n in nxgraph.nodes[node]['working_days'] and len(nxgraph.nodes[node]['working_days']) == 1]
-    selected_edges = [edge for edge in nxgraph.edges if day_n in nxgraph.edges[edge]['working_days'] and len(nxgraph.edges[edge]['working_days']) == 1]
-    # Find nodes that are connected to selected edges:
-    selected_nodes = []
-    for edge in selected_edges:
-        selected_nodes.append(edge[0])
-        selected_nodes.append(edge[1])
-    selected_nodes = list(set(selected_nodes))
-    pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
-    nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r')
-    nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black')
-    plt.title("Rails working only on day {} and no other day".format(day_n))
-    plt.show()
-
-def plt_atleast_days_n_nxgraph(nxgraph, days_n):
-    # selected_nodes = [node for node in nxgraph.nodes if all(day_n in nxgraph.nodes[node]['working_days'] for day_n in days_n)]
-    selected_edges = [edge for edge in nxgraph.edges if all(day_n in nxgraph.edges[edge]['working_days'] for day_n in days_n)]
-    # Find nodes that are connected to selected edges:
-    selected_nodes = []
-    for edge in selected_edges:
-        selected_nodes.append(edge[0])
-        selected_nodes.append(edge[1])
-    selected_nodes = list(set(selected_nodes))
-    pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
-    nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r')
-    nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black')
-    plt.title("Rails working at least on days {}".format(days_n))
-    plt.show()
-
-def plt_only_days_n_nxgraph(nxgraph, days_n):
-    # selected_nodes = [node for node in nxgraph.nodes if all(day_n in nxgraph.nodes[node]['working_days'] for day_n in days_n) and len(nxgraph.nodes[node]['working_days']) == len(days_n)]
-    selected_edges = [edge for edge in nxgraph.edges if all(day_n in nxgraph.edges[edge]['working_days'] for day_n in days_n) and len(nxgraph.edges[edge]['working_days']) == len(days_n)]
-    # Find nodes that are connected to selected edges:
-    selected_nodes = []
-    for edge in selected_edges:
-        selected_nodes.append(edge[0])
-        selected_nodes.append(edge[1])
-    selected_nodes = list(set(selected_nodes))
-    pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
-    nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r')
-    nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black')
-    plt.title("Rails working only on days {} and no other day".format(days_n))
-    plt.show()
-
-def plt_16_figure_atleastdays_nxgraph(nxgraph):
-    # Plot a 4x4 figure with all combinations of days
-    fig, axs = plt.subplots(4, 4, figsize=(20, 20))
-    for i in range(4):
-        for j in range(4):
-            days_n = [1, 2, 3, 4][:i+j+1]
-            # selected_nodes = [node for node in nxgraph.nodes if all(day_n in nxgraph.nodes[node]['working_days'] for day_n in days_n)]
-            selected_edges = [edge for edge in nxgraph.edges if all(day_n in nxgraph.edges[edge]['working_days'] for day_n in days_n)]
-            # Find nodes that are connected to selected edges:
-            selected_nodes = []
-            for edge in selected_edges:
-                selected_nodes.append(edge[0])
-                selected_nodes.append(edge[1])
-            selected_nodes = list(set(selected_nodes))
-            pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
-            nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r', ax=axs[i, j])
-            nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black', ax=axs[i, j])
-            axs[i, j].set_title("Rails working at least on days {}".format(days_n))
-    plt.show()
-
-def plt_16_figure_onlydays_nxgraph(nxgraph):
-    # Plot a 4x4 figure with all combinations of days
-    fig, axs = plt.subplots(4, 4, figsize=(20, 20))
-    for i in range(4):
-        for j in range(4):
-            days_n = [1, 2, 3, 4][:i+j+1]
-            # selected_nodes = [node for node in nxgraph.nodes if all(day_n in nxgraph.nodes[node]['working_days'] for day_n in days_n) and len(nxgraph.nodes[node]['working_days']) == len(days_n)]
-            selected_edges = [edge for edge in nxgraph.edges if all(day_n in nxgraph.edges[edge]['working_days'] for day_n in days_n) and len(nxgraph.edges[edge]['working_days']) == len(days_n)]
-            # Find nodes that are connected to selected edges:
-            selected_nodes = []
-            for edge in selected_edges:
-                selected_nodes.append(edge[0])
-                selected_nodes.append(edge[1])
-            selected_nodes = list(set(selected_nodes))
-            pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
-            nx.draw_networkx_nodes(nxgraph, pos, nodelist=selected_nodes, node_size=2, node_color='r', ax=axs[i, j])
-            nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black', ax=axs[i, j])
-            axs[i, j].set_title("Rails working only on days {}".format(days_n))
-    plt.show()
-
-# PLOTLY:
-# TODO: HEATMAP - NODES_WEIGHT=PASSAGE - OUTPUT=PLOTLY_HTML:
-def plotly_heatmap_nodes(nxgraph, save_html=False):
-    pass
-
-
-# TESTING. TODO: REMOVE THE MAIN CONTENT.
-def main():
-    # DEBUG=
-    graph = Graph('../../resources/data/input/railway.csv')
-    nxg = NXGraph(graph)
-    find_communities(nxg)
-if __name__ == "__main__":
-    main()
