@@ -10,8 +10,10 @@
         </select>
     </div>
     <div class="col">
-        <input type="day" name="day" id="day" class="col form-control bg-gray-800 mt-3 text-white" placeholder="Day"
-               onfocus="focused(this)" onfocusout="defocused(this)">
+        <div class="input-group input-group-outline my-3">
+            <label class="form-label">Day</label>
+            <input type="day" name="day" class="form-control text-white">
+        </div>
     </div>
     <div class="col max-width-200">
         <button class="btn btn-outline-light mt-3 text-bold" type="submit">Compute</button>
