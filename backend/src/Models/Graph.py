@@ -43,7 +43,7 @@ class Graph:
                 .reset_index(drop=True)
             nodes_passages_df = df_.copy()
             print("Constructing the nodes...")
-            self.nodes = []
+            self._nodes = []
             for index, row in nodes_df.iterrows():
                 node_passages_df = nodes_passages_df[(nodes_passages_df['st_id'] == row['st_id'])] \
                     .sort_values(by=['arr_time'], ascending=True) \
@@ -52,7 +52,7 @@ class Graph:
                 for index_, row_ in node_passages_df.iterrows():
                     nodes_passages.append(
                         NodePassage(row_['train'], int(row_['day']), row_['arr_time'], int(row_['stay_time'])))
-                self.nodes.append(Node(row['st_id'], Position(row['lat'], row['lon']), nodes_passages))
+                self._nodes.append(Node(row['st_id'], Position(row['lat'], row['lon']), nodes_passages))
             print("Nodes constructed.")
 
             # EDGES CONSTRUCTION:
@@ -65,7 +65,7 @@ class Graph:
                 .reset_index(drop=True)
             edge_travels_df = df_.copy()
 
-            self.edges = []
+            self._edges = []
             for index, row in edges_df.iterrows():
                 edge_travels_df_ = edge_travels_df[(edge_travels_df['dep_st_id'] == row['dep_st_id'])
                                                    & (edge_travels_df['arr_st_id'] == row['arr_st_id'])
@@ -79,8 +79,11 @@ class Graph:
                                    int(row_['travel_time']),
                                    row_['arr_st_id']))
                 # Create the edge:
-                edge = Edge(index, row['dep_st_id'], row['arr_st_id'], int(row['mileage']), travels)
-                self.edges.append(edge)
+                # Find the start and end nodes in the graph nodes list:
+                fromNode = self.get_node_by_id(row['dep_st_id'])
+                destNode = self.get_node_by_id(row['arr_st_id'])
+                edge = Edge(index, fromNode, destNode, int(row['mileage']), travels)
+                self._edges.append(edge)
             print("Edges constructed.")
 
             # END.
@@ -93,14 +96,20 @@ class Graph:
                 print("Graph saved in " + output_dir + "graph.pickle")
 
     # GETTERS:
+    def get_nodes(self):
+        return self._nodes
+
+    def get_edges(self):
+        return self._edges
+
     def get_node_by_id(self, id):
-        for node in self.nodes:
+        for node in self._nodes:
             if node.get_id() == id:
                 return node
         return None
 
     def get_edge_by_id(self, id):
-        for edge in self.edges:
+        for edge in self._edges:
             if edge.get_id() == id:
                 return edge
         return None

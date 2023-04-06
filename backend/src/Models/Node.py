@@ -13,13 +13,3 @@ class Node:
 
     def get_passages(self):
         return self._passages
-
-    # SETTERS:
-    def set_id(self, id):
-        self._id = id
-
-    def set_position(self, position):
-        self._position = position
-
-    def set_passages(self, passages):
-        self._passages = passages
