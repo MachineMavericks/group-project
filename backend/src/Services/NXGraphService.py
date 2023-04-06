@@ -14,11 +14,14 @@ from src.Models.Graph import Graph
 
 # WARNINGS=
 import warnings
+
 warnings.filterwarnings("ignore")
+
 
 # PLOTLY HEATMAP:
 def plotly_heatmap(pickle_path, day=None, component=None, metric="total_minutes", output_path=None):
-    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1, day=int(day) if day is not None and day != "" else None)
+    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
+                      day=int(day) if day is not None and day != "" else None)
     metric_name = ""
     var_factor = 3
     # DEFAULT:
