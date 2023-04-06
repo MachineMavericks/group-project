@@ -17,6 +17,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+
 # FIGURE LAYOUT UPDATE FUNCTION:
 def fig_update_layout(fig):
     fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
@@ -31,9 +32,11 @@ def fig_update_layout(fig):
                       title_font_size=20,
                       title_x=0.5)
 
+
 # DEFAULT PLOTTING OF NODES:
 def plotly_default(pickle_path, day=None, output_path=None):
-    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1, day=int(day) if day is not None and day != "" else None)
+    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
+                      day=int(day) if day is not None and day != "" else None)
     # NODES:
     nodes = []
     for node in nxgraph.nodes(data=True):
@@ -44,7 +47,9 @@ def plotly_default(pickle_path, day=None, output_path=None):
         total_minutes = node[1]['total_minutes']
         nodes.append([id, lat, lon, total_passages, total_minutes])
     df_nodes = pd.DataFrame(nodes, columns=['Node ID', 'Latitude', 'Longitude', 'Total passages', 'Total minutes'])
-    fig = px.scatter_mapbox(df_nodes, lat='Latitude', lon='Longitude', hover_name='Node ID', hover_data=['Latitude', 'Longitude', 'Total passages', 'Total minutes'], zoom=3.5, mapbox_style="open-street-map", height=800)
+    fig = px.scatter_mapbox(df_nodes, lat='Latitude', lon='Longitude', hover_name='Node ID',
+                            hover_data=['Latitude', 'Longitude', 'Total passages', 'Total minutes'], zoom=3.5,
+                            mapbox_style="open-street-map", height=800)
     fig_update_layout(fig)
     # EDGES:
     # edges = []
@@ -68,7 +73,9 @@ def plotly_default(pickle_path, day=None, output_path=None):
     # df_edges = pd.DataFrame(edges, columns=['SourceLat', 'SourceLon', 'TargetLat', 'TargetLon', 'Mileage', 'Total travels', 'Total minutes', 'Total mileage'])
     # fig.update_traces(mode='lines', hovertemplate=None)
     # fig.update_layout(showlegend=False)
-    fig.update_layout(title_text=f"Default plotly window "+("(day="+str(day) if day is not None and day != "" else "")+", nodes="+str(len(nxgraph.nodes()))+", edges="+str(len(nxgraph.edges()))+")")
+    fig.update_layout(title_text=f"Default plotly window " + (
+        "(day=" + str(day) if day is not None and day != "" else "") + ", nodes=" + str(
+        len(nxgraph.nodes())) + ", edges=" + str(len(nxgraph.edges())) + ")")
     # OUTPUT:
     if output_path is not None:
         fig.write_html(output_path)
@@ -144,5 +151,3 @@ def plotly_heatmap(pickle_path, day=None, component=None, metric="total_minutes"
     if output_path is not None:
         fig.write_html(output_path)
     return fig
-
-

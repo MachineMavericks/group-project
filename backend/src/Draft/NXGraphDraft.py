@@ -11,7 +11,9 @@ from src.Models.Graph import Graph
 
 # WARNINGS=
 import warnings
+
 warnings.filterwarnings("ignore")
+
 
 # TODO: wrap duplicated code fragments to single helper function
 
@@ -39,7 +41,7 @@ def node_passages_plt_heatmap(nxgraph, save_png=False):
         pos=pos,
         node_size=[
             min_node_size + (max_node_size - min_node_size) * (nxgraph.nodes[node]['total_minutes'] - min_weight) / (
-                        max_weight - min_weight) for node in nxgraph.nodes],
+                    max_weight - min_weight) for node in nxgraph.nodes],
         node_color=[nxgraph.nodes[node]['total_minutes'] for node in nxgraph.nodes],
         cmap=plt.cm.coolwarm,
         vmin=vmin,
@@ -48,6 +50,7 @@ def node_passages_plt_heatmap(nxgraph, save_png=False):
         # Save the figure as a png:
         plt.savefig("resources/data/output/node_passages_heatmap.png", dpi=1200)
     plt.show()
+
 
 # HEATMAP - NODES_WEIGHT=TRAVELS - OUTPUT=PLT:
 def edge_travels_plt_heatmap(nxgraph, save_png=False):
@@ -80,6 +83,7 @@ def edge_travels_plt_heatmap(nxgraph, save_png=False):
         plt.savefig("resources/data/output/edge_travels_heatmap.png", dpi=1200)
     plt.show()
 
+
 # DAY-BY-DAY (PLOT) - AT LEAST DAY N
 def plt_atleast_day_n_nxgraph(nxgraph, day_n):
     # selected_nodes = [node for node in nxgraph.nodes if day_n in nxgraph.nodes[node]['working_days']]
@@ -95,6 +99,7 @@ def plt_atleast_day_n_nxgraph(nxgraph, day_n):
     nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black')
     plt.title("Rails working at least on day {}".format(day_n))
     plt.show()
+
 
 # DAY-BY-DAY (PLOT) - ONLY DAY N
 def plt_only_day_n_nxgraph(nxgraph, day_n):
@@ -114,6 +119,7 @@ def plt_only_day_n_nxgraph(nxgraph, day_n):
     plt.title("Rails working only on day {}".format(day_n))
     plt.show()
 
+
 # DAY-BY-DAY (PLOT) - AT LEAST DAYS N
 def plt_atleast_days_n_nxgraph(nxgraph, days_n):
     # selected_nodes = [node for node in nxgraph.nodes if all(day_n in nxgraph.nodes[node]['working_days'] for day_n
@@ -131,6 +137,7 @@ def plt_atleast_days_n_nxgraph(nxgraph, days_n):
     nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black')
     plt.title("Rails working at least on days {}".format(days_n))
     plt.show()
+
 
 # DAY-BY-DAY (PLOT) - ONLY DAYS N
 def plt_only_days_n_nxgraph(nxgraph, days_n):
@@ -150,6 +157,7 @@ def plt_only_days_n_nxgraph(nxgraph, days_n):
     nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black')
     plt.title("Rails working only on days {}".format(days_n))
     plt.show()
+
 
 # DAY-BY-DAY (PLOT) - AT LEAST DAYS N - 4x4
 def plt_16_figure_atleastdays_nxgraph(nxgraph):
@@ -173,6 +181,7 @@ def plt_16_figure_atleastdays_nxgraph(nxgraph):
             nx.draw_networkx_edges(nxgraph, pos, edgelist=selected_edges, width=0.2, edge_color='black', ax=axs[i, j])
             axs[i, j].set_title("Rails working at least on days {}".format(days_n))
     plt.show()
+
 
 # DAY-BY-DAY (PLOT) - ONLY DAYS N - 4x4
 def plt_16_figure_onlydays_nxgraph(nxgraph):
@@ -198,13 +207,15 @@ def plt_16_figure_onlydays_nxgraph(nxgraph):
             axs[i, j].set_title("Rails working only on days {}".format(days_n))
     plt.show()
 
+
 # ...
 def nodes_whose_centrality_degree_is_greater_than(nx_graph, threshold):
     return [node for (node, deg) in nx_graph.degree() if deg > threshold]
 
+
 # ...
 def spatial_clustering(nx_graph):
-    pos = {node[0]: (node[1]['lon'], node[1]['lat']) for node in nx_graph.nodes(data=True)}
+    pos = {node: (nx_graph.nodes[node]['lon'], nx_graph.nodes[node]['lat']) for node in nx_graph.nodes}
 
     Ks = range(2, 50)
     wss_values = []
@@ -232,6 +243,7 @@ def spatial_clustering(nx_graph):
     nx.draw_networkx_edges(nx_graph, pos, edge_color='black', width=0.2)
 
     plt.show()
+
 
 # ...
 """
@@ -278,10 +290,11 @@ def betweenness_clustering(nx_graph):
     #     print(f"Cluster {i}: {[nx_graph.nodes()[j] for j in range(len(clusters)) if clusters[j] == i]}")
 """
 
+
 # ...
-def find_communities(nx_graph):
-    pos = {node[0]: (node[1]['lon'], node[1]['lat']) for node in nx_graph.nodes(data=True)}
-    communities = nx_comm.louvain_communities(nx_graph)
+def find_communities(nx_graph, weight='mileage'):
+    pos = {node: (nx_graph.nodes[node]['lon'], nx_graph.nodes[node]['lat']) for node in nx_graph.nodes}
+    communities = nx_comm.louvain_communities(nx_graph, weight=weight)
     for i, community in enumerate(communities):
         nx.draw_networkx_nodes(nx_graph, pos, nodelist=list(community),
                                node_color=plt.cm.tab20(i),
@@ -289,3 +302,16 @@ def find_communities(nx_graph):
                                )
     # nx.draw_networkx_edges(nx_graph, pos=pos, edge_color='white', width=0.2)
     plt.show()
+
+
+# TESTING
+def main():
+    # nxgraph = NXGraph(pickle_path="../../resources/data/output/graph.pickle", dataset_number=1, day=None)
+    graph = Graph('../../resources/data/input/railway.csv', output_dir="../../resources/data/output/",
+                  save_pickle=True)
+    nxgraph = NXGraph(graph=graph, dataset_number=1, day=None)
+    find_communities(nxgraph)
+
+
+if __name__ == "__main__":
+    main()
