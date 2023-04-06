@@ -1,3 +1,5 @@
+from itertools import permutations
+
 import networkx as nx
 import random
 import matplotlib.pyplot as plt
@@ -42,9 +44,20 @@ def average_shortest_path_length_ratio(original_graph, attacked_graph):
     return new_avg_spl / original_avg_spl
 
 
+def global_efficiency_weighted(graph, weight='mileage'):
+    n = len(graph)
+    denom = n * (n - 1)
+    if denom != 0:
+        shortest_paths = dict(nx.all_pairs_dijkstra_path_length(graph, weight=weight))
+        g_eff = sum(1. / shortest_paths[u][v] if v in shortest_paths[u] and shortest_paths[u][v] != 0 else 0
+                    for u, v in permutations(graph, 2)) / denom
+    else:
+        g_eff = 0
+    return g_eff
+
+
 def global_efficiency_ratio(original_graph, attacked_graph):
-    # TODO: specify weights as it currently considers all edges are single unit weighted
-    return nx.global_efficiency(attacked_graph) / nx.global_efficiency(original_graph)
+    return global_efficiency_weighted(attacked_graph) / global_efficiency_weighted(original_graph)
 
 
 # ATTACKS=

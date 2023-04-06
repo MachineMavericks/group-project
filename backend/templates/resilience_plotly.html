@@ -1,0 +1,35 @@
+{% extends 'base_plotly.html' %}
+
+{% block filters %}
+<form class="row">
+    <div class="col">
+        <input type="day" name="day" id="day" class="col form-control btn-outline-white bg-gray-800 mt-3 text-white" placeholder="Day"
+               onfocus="focused(this)" onfocusout="defocused(this)">
+    </div>
+    <div class="col">
+        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="strategy" id="strategy">
+            <option value="random">Random</option>
+            <option value="targeted">Targeted</option>
+        </select>
+    </div>
+    <div class="col">
+        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="component" id="component">
+            <option value="node">Node</option>
+            <option value="edge">Edge</option>
+        </select>
+    </div>
+    <div class="col">
+        <select class="col form-select btn-outline-light bg-gray-800 mt-3" name="metric" id="metric">
+            <option value="degree_centrality">Degree centrality</option>
+            <option value="betweenness_centrality"> Betweenness centrality</option>
+        </select>
+    </div>
+    <div class="col">
+        <input type="fraction" name="fraction" id="fraction" class="col form-control btn-outline-white bg-gray-800 mt-3 text-white" placeholder="Fraction"
+               onfocus="focused(this)" onfocusout="defocused(this)">
+    </div>
+    <div class="col">
+        <button class="btn btn-outline-light mt-3 text-bold" type="submit">Compute</button>
+    </div>
+</form>
+{% endblock %}
