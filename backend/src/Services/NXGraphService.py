@@ -16,19 +16,55 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-# FIGURE LAYOUT UPDATE FUNCTION:
+# COMMON DATA/SETTINGS FUNCTIONS:
 def fig_update_layout(fig):
     fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
     fig.update_layout({
         'plot_bgcolor': 'rgba(0, 0, 0, 0)',
         'paper_bgcolor': 'rgba(0, 0, 0, 0)',
         'modebar_bgcolor': 'rgba(0, 0, 0, 0)',
-        'margin': dict(l=0, r=0, t=30, b=0),
-        'coloraxis_colorbar': dict(titlefont=dict(color="white"), tickfont=dict(color="white"))
+        'modebar_color': 'white',
+        'margin': dict(l=0, r=0, t=35, b=0),
+        'coloraxis_colorbar': dict(titlefont=dict(color="white"), tickfont=dict(color="white")),
+        'legend_font_color': 'white',
+        'legend_font_size': 16
     })
     fig.update_layout(title_font_color="white",
                       title_font_size=20,
                       title_x=0.5)
+
+def df_from_nxgraph(nxgraph, component="node"):
+    node_metrics_dict = {
+        "total_passages": "Total passages",
+        "total_minutes": "Total minutes"
+    }
+    edge_metrics_dict = {
+        "mileage": "Mileage",
+        "total_travels": "Total travels",
+        "total_minutes": "Total minutes",
+        "total_mileage": "Total mileage"
+    }
+    if component == "node":
+        nodes = []
+        for node in nxgraph.nodes(data=True):
+            element = [int(node[0]), node[1]['lat'], node[1]['lon']]
+            for metric in node_metrics_dict.keys():
+                element.append(node[1][metric])
+            nodes.append(element)
+        columns = ['Node ID', 'Latitude', 'Longitude'] + list(node_metrics_dict.values())
+        df = pd.DataFrame(nodes, columns=columns)
+    elif component == "edge":
+        edges = []
+        for edge in nxgraph.edges(data=True):
+            element = [edge[0], edge[1], edge[2]['fromLat'], edge[2]['fromLon'], edge[2]['destLat'], edge[2]['destLon']]
+            for metric in edge_metrics_dict.keys():
+                element.append(edge[2][metric])
+            edges.append(element)
+        columns = ['Source Node', 'Destination Node', 'Source Latitude', 'Source Longitude', 'Destination Latitude', 'Destination Longitude'] + list(edge_metrics_dict.values())
+        df = pd.DataFrame(edges, columns=columns)
+    else:
+        raise Exception("Component not recognized.")
+    return df
 
 
 # DEFAULT PLOTTING OF NODES:
@@ -36,30 +72,9 @@ def plotly_default(pickle_path, day=None, output_path=None):
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
     # NODES DATAFRAME:
-    nodes = []
-    for node in nxgraph.nodes(data=True):
-        id = int(node[0])
-        lat = node[1]['lat']
-        lon = node[1]['lon']
-        total_passages = node[1]['total_passages']
-        total_minutes = node[1]['total_minutes']
-        nodes.append([id, lat, lon, total_passages, total_minutes])
-    df_nodes = pd.DataFrame(nodes, columns=['Node ID', 'Latitude', 'Longitude', 'Total passages', 'Total minutes'])
+    df_nodes = df_from_nxgraph(nxgraph, component="node")
     # EDGES DATAFRAME:
-    edges = []
-    for edge in nxgraph.edges(data=True):
-        from_id = edge[0]
-        dest_id = edge[1]
-        from_lat = np.round(edge[2]['fromLat'], 2)
-        from_lon = np.round(edge[2]['fromLon'], 2)
-        dest_lat = np.round(edge[2]['destLat'], 2)
-        dest_lon = np.round(edge[2]['destLon'], 2)
-        total_travels = edge[2]['total_travels']
-        total_minutes = edge[2]['total_minutes']
-        edges.append([from_id, dest_id, from_lat, from_lon, dest_lat, dest_lon, total_travels, total_minutes])
-    df_edges = pd.DataFrame(edges, columns=['Source Node', 'Destination Node', 'Source Latitude', 'Source Longitude',
-                                            'Destination Latitude', 'Destination Longitude', 'Total travels',
-                                            'Total minutes'])
+    df_edges = df_from_nxgraph(nxgraph, component="edge")
     # CREATE NEW FIGURE:
     fig = px.scatter_mapbox(df_nodes[df_nodes["Node ID"] == -1], lat="Latitude", lon="Longitude", hover_name="Node ID",
                             hover_data=["Total passages", "Total minutes"], zoom=3.5, mapbox_style="open-street-map",
@@ -85,7 +100,7 @@ def plotly_default(pickle_path, day=None, output_path=None):
         line=dict(width=1, color='grey'),
         hoverinfo='text',
         hovertext="Edge from " + df_edges['Source Node'].astype(str) + " to " + df_edges['Destination Node'].astype(
-            str) + "<br>Travels: " + df_edges['Total travels'].astype(str) + "<br>Minutes: " + df_edges[
+            str) + "<br>Total travels: " + df_edges['Total travels'].astype(str) + "<br>Total minutes: " + df_edges[
                       'Total minutes'].astype(str),
         name="Edges"
     ))
@@ -100,12 +115,13 @@ def plotly_default(pickle_path, day=None, output_path=None):
         hovertext="Node n°" + df_nodes['Node ID'].astype(str) + "<br>Position: (Lat=" + df_nodes['Latitude'].astype(
             str) + ", Lon=" + df_nodes['Longitude'].astype(str) + ")<br>Total passages: " + df_nodes[
                       'Total passages'].astype(str) + "<br>Total minutes: " + df_nodes['Total minutes'].astype(str),
+        name="Nodes"
     )
     # GLOBAL SETTINGS:
     fig_update_layout(fig)
     # TITLE:
     fig.update_layout(title_text=f"Default plotly window " + (
-        "(day=" + str(day) if day is not None and day != "" else "") + ", nodes=" + str(
+        "(day=" + str(day) + ", " if day is not None and day != "" else "(") + "nodes=" + str(
         len(nxgraph.nodes())) + ", edges=" + str(len(nxgraph.edges())) + ")")
     # OUTPUT:
     if output_path is not None:
@@ -113,14 +129,15 @@ def plotly_default(pickle_path, day=None, output_path=None):
     return fig
 
 # PLOTLY HEATMAP:
-def plotly_heatmap(pickle_path, day=None, component=None, metric="total_minutes", output_path=None):
-    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
-                      day=int(day) if day is not None and day != "" else None)
-    metric_name = ""
-    var_factor = 3
+def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_path=None):
     # DEFAULT:
     component = "node" if component is None else component
     metric = "total_minutes" if metric is None else metric
+    # NXGRAPH:
+    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1, day=int(day) if day is not None and day != "" else None)
+    # SETTINGS:
+    metric_name = ""
+    var_factor = 3
     # SPECIFIC:
     if component == "node":
         if metric == "total_minutes":
@@ -144,6 +161,7 @@ def plotly_heatmap(pickle_path, day=None, component=None, metric="total_minutes"
             nx.set_node_attributes(nxgraph, closeness_centrality, 'closeness_centrality')
         else:
             raise NotImplementedError("Metric not implemented")
+        # PLOTTING SETTINGS:
         min_metric = min([node[1][metric] for node in nxgraph.nodes(data=True)])
         max_metric = max([node[1][metric] for node in nxgraph.nodes(data=True)])
         median_metric = np.median([node[1][metric] for node in nxgraph.nodes(data=True)])
@@ -163,20 +181,87 @@ def plotly_heatmap(pickle_path, day=None, component=None, metric="total_minutes"
                                 range_color=[vmin, vmax], hover_name='Node ID',
                                 hover_data=['Latitude', 'Longitude', metric_name])
     elif component == "edge":
-        raise NotImplementedError("Edge heatmap not implemented yet.")
+        if metric == "total_minutes":
+            metric_name = "Total minutes"
+        elif metric == "total_passages":
+            metric = "total_travels"
+            metric_name = "Total travels"
+        elif metric == "mileage":
+            metric_name = "Mileage"
+        elif metric == "total_mileage":
+            metric_name = "Total mileage"
+        elif metric == "degree_centrality":
+            raise NotImplementedError("Degree centrality not implemented for edges")
+        elif metric == "betweenness_centrality":
+            metric_name = "Betweenness centrality"
+            print("Gathering betweenness centralities...")
+            betweenness_centrality = nx.edge_betweenness_centrality(nxgraph)
+            nx.set_edge_attributes(nxgraph, betweenness_centrality, 'betweenness_centrality')
+        elif metric == "closeness_centrality":
+            raise NotImplementedError("Closeness centrality not implemented for edges")
+        else:
+            raise NotImplementedError("Metric not implemented")
+        # DUMMY PLOT:
+        df_nodes = df_from_nxgraph(nxgraph, component="node")
+        fig = px.scatter_mapbox(df_nodes[df_nodes["Node ID"] == -1], lat="Latitude", lon="Longitude",
+                                hover_name="Node ID",
+                                hover_data=["Total passages", "Total minutes"], zoom=3.5,
+                                mapbox_style="open-street-map",
+                                height=800, center=dict(lat=36, lon=117))
+        # PLOTTING SETTINGS:
+        min_metric = min([edge[2][metric] for edge in nxgraph.edges(data=True)])
+        max_metric = max([edge[2][metric] for edge in nxgraph.edges(data=True)])
+        median_metric = np.median([edge[2][metric] for edge in nxgraph.edges(data=True)])
+        avg_metric = np.mean([edge[2][metric] for edge in nxgraph.edges(data=True)])
+        metrics = sorted([edge[2][metric] for edge in nxgraph.edges(data=True)])
+        vmin = min_metric
+        vmax = max_metric
+        # Steps array using the median metric so that the color scale is centered on it:
+        steps = [metrics[int(len(metrics) * i / 10)] for i in range(10)]
+        # Colors from light green to yellow, to orange, to red:
+        colors = [
+            "rgb(255, 255, 204)",
+            "rgb(255, 237, 160)",
+            "rgb(254, 217, 118)",
+            "rgb(254, 178, 76)",
+            "rgb(253, 141, 60)",
+            "rgb(252, 78, 42)",
+            "rgb(227, 26, 28)",
+            "rgb(189, 0, 38)",
+            "rgb(128, 0, 38)",
+        ]
+        # EDGES: Add edges as disconnected lines in a single trace
+        edges_x = [[] for i in range(len(steps))]
+        edges_y = [[] for i in range(len(steps))]
+        for edge in nxgraph.edges(data=True):
+            x0, y0 = nxgraph.nodes[edge[0]]['lon'], nxgraph.nodes[edge[0]]['lat']
+            x1, y1 = nxgraph.nodes[edge[1]]['lon'], nxgraph.nodes[edge[1]]['lat']
+            # Find the range step of the edge metric:
+            for i in range(len(steps) - 1):
+                step=0
+                if steps[i] <= edge[2][metric] and edge[2][metric] <= steps[i + 1]:
+                    step = i
+                    break
+            edges_x[step].append(x0)
+            edges_x[step].append(x1)
+            edges_x[step].append(None)
+            edges_y[step].append(y0)
+            edges_y[step].append(y1)
+            edges_y[step].append(None)
+        for i in range(len(steps) - 1):
+            fig.add_trace(go.Scattermapbox(
+                lat=edges_y[i],
+                lon=edges_x[i],
+                mode='lines',
+                line=dict(width=1, color=colors[i]),
+                hoverinfo='text',
+                showlegend=True,
+                name=metric_name + "(" + str(format(steps[i], '.1E')) + " > " + str(format(steps[i + 1], '.1E')) + ")",
+            ))
     # GLOBAL SETTINGS:
-    fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
-    fig.update_layout({
-        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
-        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
-        'modebar_bgcolor': 'rgba(0, 0, 0, 0)',
-        'margin': dict(l=0, r=0, t=30, b=0),
-        'coloraxis_colorbar': dict(titlefont=dict(color="white"), tickfont=dict(color="white"))
-    })
-    fig.update_layout(title_text=f"Heatmap: Component={component}, Metric={metric_name}, Day={day}",
-                      title_font_color="white",
-                      title_font_size=20,
-                      title_x=0.5)
+    fig_update_layout(fig)
+    fig.update_layout(title_text=f"Heatmap: Component=" + component + ", Metric=" + metric_name
+                                 +", Day="+(day if (day is not None and day != "") else "None"))
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)
