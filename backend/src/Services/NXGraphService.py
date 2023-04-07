@@ -1,11 +1,14 @@
 # IMPORTS=
 import networkx as nx
 from itertools import permutations
+import networkx.algorithms.community as nx_comm
 
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+from kneed import KneeLocator
+from sklearn.cluster import KMeans
 
 # MODELS=
 from src.Models.NXGraph import NXGraph
@@ -113,6 +116,7 @@ def plotly_default(pickle_path, day=None, output_path=None):
         fig.write_html(output_path)
     return fig
 
+
 # PLOTLY HEATMAP:
 def plotly_heatmap(pickle_path, day=None, component=None, metric="total_minutes", output_path=None):
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
@@ -183,6 +187,7 @@ def plotly_heatmap(pickle_path, day=None, component=None, metric="total_minutes"
         fig.write_html(output_path)
     return fig
 
+
 # PLOTLY RESILIENCE:
 # helper functions:
 def largest_connected_component_ratio(original_graph, attacked_graph):
@@ -190,6 +195,8 @@ def largest_connected_component_ratio(original_graph, attacked_graph):
     og_lcc, lcc = max(og_cc, key=len), max(cc, key=len)
 
     return len(lcc) / len(og_lcc)
+
+
 def global_efficiency_weighted(graph, weight='mileage'):
     n = len(graph)
     denom = n * (n - 1)
@@ -200,12 +207,17 @@ def global_efficiency_weighted(graph, weight='mileage'):
     else:
         g_eff = 0
     return g_eff
+
+
 def global_efficiency_ratio(original_graph, attacked_graph):
     return global_efficiency_weighted(attacked_graph) / global_efficiency_weighted(original_graph)
 
+
 # main function: TODO: add edges (red/white) + add sub functions for duplicated code
-def plotly_resilience(pickle_path, day=None, strategy="targetted", component="node", metric="degree_centrality", fraction="0.01", output_path=None):
-    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1, day=int(day) if day is not None and day != "" else None)
+def plotly_resilience(pickle_path, day=None, strategy="targetted", component="node", metric="degree_centrality",
+                      fraction="0.01", output_path=None):
+    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
+                      day=int(day) if day is not None and day != "" else None)
     # DEFAULT:
     strategy = "targetted" if strategy is None else strategy
     component = "node" if component is None else component
@@ -264,21 +276,92 @@ def plotly_resilience(pickle_path, day=None, strategy="targetted", component="no
     destroyed_df = pd.DataFrame(destroyed_nodes, columns=['Node ID', 'Latitude', 'Longitude', metric])
     fig = px.scatter_mapbox(init_df[init_df["Node ID"] == -1], lat='Latitude', lon='Longitude',
                             center=dict(lat=36, lon=117), zoom=3.5, mapbox_style="open-street-map", height=800)
-    fig.add_scattermapbox(lat=init_df['Latitude'], lon=init_df['Longitude'], mode='markers', marker=dict(size=3, color='blue'),
+    fig.add_scattermapbox(lat=init_df['Latitude'], lon=init_df['Longitude'], mode='markers',
+                          marker=dict(size=3, color='blue'),
                           name="Nodes", hoverinfo="text",
-                          hovertext="Node n°" + init_df['Node ID'].astype(str) + "<br>" + metric + ": " + init_df[metric].astype(str))
-    fig.add_scattermapbox(lat=destroyed_df['Latitude'], lon=destroyed_df['Longitude'], mode='markers', marker=dict(size=6, color='red'),
+                          hovertext="Node n°" + init_df['Node ID'].astype(str) + "<br>" + metric + ": " + init_df[
+                              metric].astype(str))
+    fig.add_scattermapbox(lat=destroyed_df['Latitude'], lon=destroyed_df['Longitude'], mode='markers',
+                          marker=dict(size=6, color='red'),
                           name="Destroyed nodes", hoverinfo="text",
-                          hovertext="Node n°" + destroyed_df['Node ID'].astype(str) + "<br>" + metric + ": " + destroyed_df[metric].astype(str))
+                          hovertext="Node n°" + destroyed_df['Node ID'].astype(str) + "<br>" + metric + ": " +
+                                    destroyed_df[metric].astype(str))
     # GLOBAL SETTINGS:
     fig_update_layout(fig)
     fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
-    fig.update_layout(title_text=f"Resilience: Strategy={strategy}, Component={component}, Metric={metric}, Fraction={fraction}, Day={day}",
-                        title_font_color="white",
-                        title_font_size=20,
-                        title_x=0.5)
+    fig.update_layout(
+        title_text=f"Resilience: Strategy={strategy}, Component={component}, Metric={metric}, Fraction={fraction}, Day={day}",
+        title_font_color="white",
+        title_font_size=20,
+        title_x=0.5)
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)
 
 
+def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', output_path=None):
+    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
+                      day=int(day) if day is not None and day != "" else None)
+    # DEFAULT:
+    algorithm = "Euclidian k-mean" if algorithm is None else algorithm
+    communities = {}
+    if algorithm == "Euclidian k-mean":
+        pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
+        Ks = range(2, 50)
+        wss_values = []
+        for k in Ks:
+            km = KMeans(n_clusters=k, random_state=0)
+            km.fit(list(pos.values()))
+            wss_values.append(km.inertia_)
+
+        kn = KneeLocator(Ks, wss_values, curve='convex', direction='decreasing')
+        elbow_k = kn.knee
+        km = KMeans(n_clusters=elbow_k).fit(list(pos.values()))
+        km_labels = km.predict(list(pos.values()))
+
+        # Create a list of arrays, where each array contains the nodes in a cluster
+        communities = [[] for _ in range(elbow_k)]
+        for i, node in enumerate(list(pos.keys())):
+            communities[km_labels[i]].append(node)
+
+    elif algorithm == "Louvain":
+        communities = nx_comm.louvain_communities(nxgraph, weight='mileage')
+
+    # Create a list to store the data
+    data = []
+    for i, comm in enumerate(communities):
+        for node in comm:
+            lat = np.round(nxgraph.nodes[node]['lat'], 2)
+            lon = np.round(nxgraph.nodes[node]['lon'], 2)
+            data.append([node, lat, lon, i])
+
+    # Create a DataFrame from the data
+    df = pd.DataFrame(data, columns=['Node ID', 'Latitude', 'Longitude', 'Community'])
+    # Create a list of colors for each community
+    colors = px.colors.qualitative.Safe * (len(df['Community'].unique()) // len(px.colors.qualitative.Safe) + 1)
+
+    # Map community IDs to colors
+    df['Color'] = df['Community'].apply(lambda x: colors[x % len(colors)])
+
+    # Create the plot using scatter_mapbox
+    fig = px.scatter_mapbox(df[df["Node ID"] == -1], lat='Latitude', lon='Longitude',
+                            center=dict(lat=36, lon=117), zoom=3.5,
+                            mapbox_style="open-street-map", height=800)
+
+    fig.add_scattermapbox(lat=df['Latitude'], lon=df['Longitude'], mode='markers',
+                          marker=dict(size=5, color=df['Color']),
+                          name="Nodes", hoverinfo="text",
+                          hovertext="Node n°" + df['Node ID'].astype(str) + "<br>" + 'Cluster n°'
+                                    + df['Community'].astype(str))
+
+    # GLOBAL SETTINGS:
+    fig_update_layout(fig)
+    fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
+    fig.update_layout(
+        title_text=f"Clustering: Algorithm={algorithm}",
+        title_font_color="white",
+        title_font_size=20,
+        title_x=0.5)
+    # WRITE HTML FILE:
+    if output_path is not None:
+        fig.write_html(output_path)

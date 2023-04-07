@@ -1,0 +1,16 @@
+{% extends 'base_plotly.html' %}
+
+{% block filters %}
+<form class="row">
+    <div class="col">
+        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="algorithm" id="algorithm">
+            <option value="Euclidian k-mean">Euclidian k-mean</option>
+            <option value="Louvain">Louvain</option>
+        </select>
+    </div>
+    <div class="col">
+        <button class="btn btn-outline-light mt-3 text-bold" type="submit">Compute</button>
+    </div>
+
+</form>
+{% endblock %}

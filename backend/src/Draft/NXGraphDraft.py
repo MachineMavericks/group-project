@@ -306,10 +306,7 @@ def find_communities(nx_graph, weight='mileage'):
 
 # TESTING
 def main():
-    # nxgraph = NXGraph(pickle_path="../../resources/data/output/graph.pickle", dataset_number=1, day=None)
-    graph = Graph('../../resources/data/input/railway.csv', output_dir="../../resources/data/output/",
-                  save_pickle=True)
-    nxgraph = NXGraph(graph=graph, dataset_number=1, day=None)
+    nxgraph = NXGraph(pickle_path="../../resources/data/output/graph.pickle", dataset_number=1, day=None)
     find_communities(nxgraph)
 
 
