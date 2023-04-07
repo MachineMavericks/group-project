@@ -299,11 +299,12 @@ def plotly_resilience(pickle_path, day=None, strategy="targetted", component="no
         fig.write_html(output_path)
 
 
-def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', output_path=None):
+def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weight='mileage', output_path=None):
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
     # DEFAULT:
     algorithm = "Euclidian k-mean" if algorithm is None else algorithm
+    weight = 'mileage' if weight is None else weight
     communities = {}
     if algorithm == "Euclidian k-mean":
         pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
@@ -325,7 +326,7 @@ def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', outpu
             communities[km_labels[i]].append(node)
 
     elif algorithm == "Louvain":
-        communities = nx_comm.louvain_communities(nxgraph, weight='mileage')
+        communities = nx_comm.louvain_communities(nxgraph, weight=weight)
 
     # Create a list to store the data
     data = []
@@ -358,7 +359,7 @@ def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', outpu
     fig_update_layout(fig)
     fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
     fig.update_layout(
-        title_text=f"Clustering: Algorithm={algorithm}",
+        title_text=f"Clustering: Algorithm={algorithm} Day={day} Weight={weight}",
         title_font_color="white",
         title_font_size=20,
         title_x=0.5)

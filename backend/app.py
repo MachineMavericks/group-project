@@ -1,15 +1,15 @@
 # DEFAULT IMPORTS:
-import os                                                   # OS
+import os  # OS
 # FLASK IMPORTS:
-from flask import Flask, render_template, request, flash    # FLASK
+from flask import Flask, render_template, request, flash  # FLASK
 from werkzeug.utils import secure_filename
-from flask_restx import Api                                 # REST-X API
+from flask_restx import Api  # REST-X API
 # MODELS=
-from src.Models.Graph import Graph                          # GRAPH
-from src.Models.NXGraph import NXGraph                      # NXGRAPH
+from src.Models.Graph import Graph  # GRAPH
+from src.Models.NXGraph import NXGraph  # NXGRAPH
 # CONTROLLERS=
-from src.Controllers.GraphController import *               # GRAPH CONTROLLER
-from src.Controllers.NXGraphController import *             # NXGRAPH CONTROLLER
+from src.Controllers.GraphController import *  # GRAPH CONTROLLER
+from src.Controllers.NXGraphController import *  # NXGRAPH CONTROLLER
 
 # PATHS=
 input_dir = "static/input/"
@@ -19,7 +19,7 @@ os.mkdir(output_dir) and print("Can't find output directory. Creating one now.")
 UPLOAD_FOLDER = 'static/input/uploads'
 
 # GRAPH/NXGRAPH OBJECTS CONSTRUCTION -> SAVE TO PICKLE:
-graph = Graph(filepath=input_dir+"railway.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
+graph = Graph(filepath=input_dir + "railway.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
 
 # FILE UPLOAD EXTENSIONS
 ALLOWED_EXTENSIONS = {'csv', 'xlsx', 'tsv', 'ods'}
@@ -43,13 +43,16 @@ api = Api(app,
 api.add_namespace(graph_ns)
 api.add_namespace(nxgraph_ns)
 
+
 # INDEX ROUTE:
 @app.route('/index', methods=['GET', 'POST'])
 def index():
     return render_template("base.html")
 
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @app.route('/choice', methods=['GET', 'POST'])
 def choose_dataset():
@@ -68,10 +71,13 @@ def choose_dataset():
             return render_template("dataset/upload_done.html")
     return render_template("dataset/dataset_selection.html")
 
+
 def main():
     # START THE APP:
     app.run(debug=True)
     # START THE SWAGGER DOC:
     api.init_app(app)
+
+
 if __name__ == '__main__':
     main()
