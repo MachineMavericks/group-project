@@ -16,18 +16,15 @@ input_dir = "static/input/"
 output_dir = "static/output/"
 os.mkdir(output_dir) and print("Can't find output directory. Creating one now.") \
     if not os.path.isdir(output_dir) else print("Found existing output directory.")
-UPLOAD_FOLDER = 'static/input/uploads'
+upload_dir = 'static/input/uploads'
+allowed_extensions = {'csv', 'xlsx', 'tsv', 'ods'}
 
 # GRAPH/NXGRAPH OBJECTS CONSTRUCTION -> SAVE TO PICKLE:
 graph = Graph(filepath=input_dir + "railway.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
 
-# FILE UPLOAD EXTENSIONS
-ALLOWED_EXTENSIONS = {'csv', 'xlsx', 'tsv', 'ods'}
-
 # FLASK APP:
 app = Flask(__name__)
-# UPLOAD FOLDER
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = upload_dir
 # BLUEPRINTS:
 app.register_blueprint(nxgraph_bp)
 
@@ -51,7 +48,7 @@ def index():
 
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 
 @app.route('/choice', methods=['GET', 'POST'])
