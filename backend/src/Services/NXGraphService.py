@@ -36,6 +36,7 @@ def fig_update_layout(fig):
                       title_font_size=20,
                       title_x=0.5)
 
+# HELPER FUNCTIONS:
 def df_from_nxgraph(nxgraph, component="node"):
     node_metrics_dict = {
         "total_passages": "Total passages",
@@ -68,6 +69,26 @@ def df_from_nxgraph(nxgraph, component="node"):
     else:
         raise Exception("Component not recognized.")
     return df
+
+def largest_connected_component_ratio(original_graph, attacked_graph):
+    og_cc, cc = nx.connected_components(original_graph), nx.connected_components(attacked_graph)
+    og_lcc, lcc = max(og_cc, key=len), max(cc, key=len)
+
+    return len(lcc) / len(og_lcc)
+
+def global_efficiency_weighted(graph, weight='mileage'):
+    n = len(graph)
+    denom = n * (n - 1)
+    if denom != 0:
+        shortest_paths = dict(nx.all_pairs_dijkstra_path_length(graph, weight=weight))
+        g_eff = sum(1. / shortest_paths[u][v] if v in shortest_paths[u] and shortest_paths[u][v] != 0 else 0
+                    for u, v in permutations(graph, 2)) / denom
+    else:
+        g_eff = 0
+    return g_eff
+
+def global_efficiency_ratio(original_graph, attacked_graph):
+    return global_efficiency_weighted(attacked_graph) / global_efficiency_weighted(original_graph)
 
 
 # DEFAULT PLOTTING OF NODES:
@@ -130,7 +151,6 @@ def plotly_default(pickle_path, day=None, output_path=None):
     if output_path is not None:
         fig.write_html(output_path)
     return fig
-
 
 # PLOTLY HEATMAP:
 def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_path=None):
@@ -271,33 +291,7 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
         fig.write_html(output_path)
     return fig
 
-
-# PLOTLY RESILIENCE:
-# helper functions:
-def largest_connected_component_ratio(original_graph, attacked_graph):
-    og_cc, cc = nx.connected_components(original_graph), nx.connected_components(attacked_graph)
-    og_lcc, lcc = max(og_cc, key=len), max(cc, key=len)
-
-    return len(lcc) / len(og_lcc)
-
-
-def global_efficiency_weighted(graph, weight='mileage'):
-    n = len(graph)
-    denom = n * (n - 1)
-    if denom != 0:
-        shortest_paths = dict(nx.all_pairs_dijkstra_path_length(graph, weight=weight))
-        g_eff = sum(1. / shortest_paths[u][v] if v in shortest_paths[u] and shortest_paths[u][v] != 0 else 0
-                    for u, v in permutations(graph, 2)) / denom
-    else:
-        g_eff = 0
-    return g_eff
-
-
-def global_efficiency_ratio(original_graph, attacked_graph):
-    return global_efficiency_weighted(attacked_graph) / global_efficiency_weighted(original_graph)
-
-
-# main function: TODO: add edges (red/white) + add sub functions for duplicated code
+# PLOTLY RESILIENCE: TODO: add edges (red/white) + add sub functions for duplicated code
 def plotly_resilience(pickle_path, day=None, strategy="targetted", component="node", metric="degree_centrality",
                       fraction="0.01", output_path=None):
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
@@ -382,7 +376,7 @@ def plotly_resilience(pickle_path, day=None, strategy="targetted", component="no
     if output_path is not None:
         fig.write_html(output_path)
 
-
+# PLOTLY CLUSTERING:
 def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weight='mileage', output_path=None):
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
@@ -441,12 +435,7 @@ def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weigh
 
     # GLOBAL SETTINGS:
     fig_update_layout(fig)
-    fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
-    fig.update_layout(
-        title_text=f"Clustering: Algorithm={algorithm} Day={day} Weight={weight}",
-        title_font_color="white",
-        title_font_size=20,
-        title_x=0.5)
+    fig.update_layout(title_text=f"Clustering: Algorithm={algorithm} Day={day} Weight={weight}")
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)
