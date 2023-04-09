@@ -73,6 +73,7 @@ def resilience():
 def clustering():
     plotly_clustering(pickle_path=pickle_filepath, output_path='static/output/plotly.html',
                       algorithm=request.args.get('algorithm'),
+                      weight=request.args.get('weight'),
                       day=request.args.get('day'))
     return render_template("clustering_plotly.html")
 
