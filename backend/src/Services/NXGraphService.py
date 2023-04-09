@@ -5,10 +5,12 @@ import networkx.algorithms.community as nx_comm
 
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
 from kneed import KneeLocator
 from sklearn.cluster import KMeans
+from scipy.special import factorial
 
 # MODELS=
 from src.Models.NXGraph import NXGraph
@@ -362,6 +364,80 @@ def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', outpu
         title_font_color="white",
         title_font_size=20,
         title_x=0.5)
+    # WRITE HTML FILE:
+    if output_path is not None:
+        fig.write_html(output_path)
+
+
+def plotly_small_world(pickle_path, day=None, output_path=None):
+    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
+                      day=int(day) if day is not None and day != "" else None)
+    fig = make_subplots(rows=2, cols=2)
+    fig.update_layout(title_text=f"Small-World Features " + (
+        "(day " + str(day) + ")" if day is not None and day != "" else ""))
+    nbins = 100
+    nb_nd = nxgraph.number_of_nodes()
+    # SHORTEST PATH HISTOGRAM -> small diameter
+    shortest_paths = list(dict(list(dict(nx.all_pairs_shortest_path_length(nxgraph)).values())[0]).values())
+    fig.add_trace(go.Histogram(x=shortest_paths, nbinsx=nbins, name="Shortest Path Length Histogram"), row=1, col=1)
+    path_length_mean = sum(shortest_paths)/len(shortest_paths)
+    annot_lenght = "Mean = " + str(round(path_length_mean, 2))
+    fig.add_vline(x=path_length_mean, line_dash="dot", annotation_text=annot_lenght, annotation_position="top right",
+                  row=1, col=1)
+    # DEGREE HISTOGRAM -> some high degree nodes
+    degrees = list(dict(nx.degree(nxgraph)).values())
+    fig.add_trace(go.Histogram(x=degrees, nbinsx=nbins, name="Degree Histogram"), row=1, col=2)
+    # CLUSTERING COEFFICIENT HISTOGRAM -> highly clustered
+    digraph = nx.DiGraph(nxgraph) # nx.clustering not implemented for multigraphs
+    clustering_coeffs = list(dict(nx.clustering(digraph)).values())
+    fig.add_trace(go.Histogram(x=clustering_coeffs, nbinsx=nbins, name="Clustering Coefficients Histogram"),
+                  row=2, col=1)
+    clust_coeff_mean = sum(clustering_coeffs)/len(clustering_coeffs)
+    annot_clust = "Network CC = " + str(round(clust_coeff_mean, 2))
+    fig.add_vline(x=clust_coeff_mean, line_dash="dot", annotation_text=annot_clust, annotation_position="top right",
+                  row=2, col=1)
+    # DEGREE DISTRIBUTION HISTOGRAM AND POISON DISTRIBUTION -> follows Poisson
+    degrees_nb = {}
+    for i in range(100):
+        degrees_nb.update({i: 0})
+    for deg in degrees:
+        if deg in degrees_nb:
+            degrees_nb[deg] += 1
+    degree_distribution = list(degrees_nb.values())
+    for i in range(len(degree_distribution)):
+        degree_distribution[i] /= nb_nd
+    x = np.arange(0, 5, 0.1)
+    fig.add_trace(go.Scatter(x=x, y=degree_distribution, mode='lines', name='Degree Distribution'), row=2, col=2)
+    # SLIDER FOR POISSON LAMBDA
+    for step in np.arange(0, 1.5, 0.01):
+        fig.add_trace(
+            go.Scatter(
+                visible=False,
+                mode='lines',
+                name="Poisson: lambda=" + str(round(step, 3)),
+                x=x,
+                y=np.exp(-step)*np.power(step, x)/factorial(x)), row=2, col=2)
+    fig.data[10].visible = True
+    steps = []
+    for i in range(146):
+        step = dict(
+            method="update",
+            args=[{"visible": [False] * len(fig.data)}]  # layout attribute
+        )
+        step["args"][0]["visible"][i+4] = True  # Toggle i'th trace to "visible"
+        step["args"][0]["visible"][0] = True
+        step["args"][0]["visible"][1] = True
+        step["args"][0]["visible"][2] = True
+        step["args"][0]["visible"][3] = True
+        steps.append(step)
+    sliders = [dict(
+        active=10,
+        currentvalue={"prefix": "lambda: "},
+        steps=steps
+    )]
+    fig.update_layout(
+        sliders=sliders
+    )
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)

@@ -75,3 +75,9 @@ def clustering():
                       algorithm=request.args.get('algorithm'),
                       day=request.args.get('day'))
     return render_template("clustering_plotly.html")
+
+@nxgraph_bp.route('/smallworld', methods=['GET', 'POST'])
+def histogram():
+    plotly_small_world(pickle_path=pickle_filepath, output_path='static/output/plotly.html',
+                       day=request.args.get('day'))
+    return render_template("smallworld_plotly.html")
