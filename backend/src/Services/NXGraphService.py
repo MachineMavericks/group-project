@@ -448,7 +448,7 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
                       day=int(day) if day is not None and day != "" else None)
     fig = make_subplots(rows=2, cols=2)
     fig.update_layout(title_text=f"Small-World Features " + (
-        "(day " + str(day) + ")" if day is not None and day != "" else ""))
+        "(day " + str(day) + ")" if day is not None and day != "" else ""), height=700)
     nbins = 100
     nb_nd = nxgraph.number_of_nodes()
     # SHORTEST PATH HISTOGRAM -> small diameter
@@ -488,7 +488,7 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
             go.Scatter(
                 visible=False,
                 mode='lines',
-                name="Poisson: lambda=" + str(round(step, 3)),
+                name="Poisson: λ=" + str(round(step, 3)),
                 x=x,
                 y=np.exp(-step)*np.power(step, x)/factorial(x)), row=2, col=2)
     fig.data[10].visible = True
@@ -506,7 +506,7 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
         steps.append(step)
     sliders = [dict(
         active=10,
-        currentvalue={"prefix": "lambda: "},
+        currentvalue={"prefix": "λ: "},
         steps=steps
     )]
     fig.update_layout(

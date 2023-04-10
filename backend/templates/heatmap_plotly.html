@@ -1,6 +1,17 @@
 {% extends 'base_plotly.html' %}
 
 {% block filters %}
+<script>
+    function DisplayRelevant() {
+        var Component = document.getElementById("component");
+        var deg_cent = document.getElementById("deg_cent");
+        var bet_cent = document.getElementById("bet_cent");
+        var clos_cent = document.getElementById("clos_cent");
+        deg_cent.style.display = component.value == "node" ? "block" : "none";
+        bet_cent.style.display = component.value == "node" ? "block" : "none";
+        clos_cent.style.display = component.value == "node" ? "block" : "none";
+    }
+</script>
 <form class="row">
     <div class="col">
         <div class="input-group input-group-outline my-3">
@@ -9,7 +20,8 @@
         </div>
     </div>
     <div class="col">
-        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="component" id="component">
+        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="component" id="component"
+                onchange="DisplayRelevant()">
             <option value="node">Node</option>
             <option value="edge">Edge</option>
         </select>
@@ -18,9 +30,9 @@
         <select class="col form-select btn-outline-light bg-gray-800 mt-3" name="metric" id="metric">
             <option value="total_minutes">Total minutes</option>
             <option value="total_passages">Total passages</option>
-            <option value="degree_centrality">Degree Centrality</option>
-            <option value="betweenness_centrality">Betweenness Centrality</option>
-            <option value="closeness_centrality">Closeness Centrality</option>
+            <option id="deg_cent" value="degree_centrality">Degree Centrality</option>
+            <option id="bet_cent" value="betweenness_centrality">Betweenness Centrality</option>
+            <option id="clos_cent" value="closeness_centrality">Closeness Centrality</option>
         </select>
     </div>
     <div class="col">
