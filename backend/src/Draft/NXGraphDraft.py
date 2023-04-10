@@ -1,9 +1,10 @@
 # IMPORTS=
 import networkx.algorithms.community as nx_comm
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, SpectralClustering
 import matplotlib.pyplot as plt
 import networkx as nx
 from kneed import KneeLocator
+import numpy as np
 
 # MODELS=
 from src.Models.NXGraph import NXGraph
@@ -245,6 +246,33 @@ def spatial_clustering(nx_graph):
     plt.show()
 
 
+def spectral_clustering(nx_graph):
+    pos = {node: (nx_graph.nodes[node]['lon'], nx_graph.nodes[node]['lat']) for node in nx_graph.nodes}
+    # create the affinity matrix
+    affinity_matrix = np.zeros((len(nx_graph), len(nx_graph)))
+    for i, u in enumerate(nx_graph.nodes()):
+        for j, v in enumerate(nx_graph.nodes()):
+            if i != j:
+                affinity_matrix[i, j] = 1 / nx_graph[u][v][0]['total_travels'] if nx_graph.has_edge(u, v) else 0
+
+    # perform spectral clustering
+    spectral = SpectralClustering(n_clusters=15, affinity='precomputed')
+    spectral.fit(affinity_matrix)
+    clusters = spectral.labels_
+
+    # create a colormap
+    cmap = plt.cm.get_cmap('jet', 10)
+
+    # map cluster labels to colors
+    edge_colors = [cmap(i) for i in clusters]
+
+    # draw the graph
+    # nx.draw_networkx_nodes(nx_graph, pos, node_size=1)
+    nx.draw_networkx_edges(nx_graph, pos, width=0.2, edge_color=edge_colors)
+
+    # show the plot
+    plt.show()
+
 # ...
 """
 # ___________________________________________________________
@@ -306,8 +334,8 @@ def find_communities(nx_graph, weight='mileage'):
 
 # TESTING
 def main():
-    nxgraph = NXGraph(pickle_path="../../resources/data/output/graph.pickle", dataset_number=1, day=None)
-    find_communities(nxgraph)
+    nxgraph = NXGraph(pickle_path="../../resources/data/output/graph.pickle", dataset_number=1, day=2)
+    spectral_clustering(nxgraph)
 
 
 if __name__ == "__main__":
