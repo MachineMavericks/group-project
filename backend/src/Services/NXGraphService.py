@@ -21,6 +21,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+
 # COMMON DATA/SETTINGS FUNCTIONS:
 def fig_update_layout(fig):
     fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
@@ -38,7 +39,9 @@ def fig_update_layout(fig):
                       title_font_size=20,
                       title_x=0.5)
 
+
 # HELPER FUNCTIONS:
+
 def df_from_nxgraph(nxgraph, component="node"):
     node_metrics_dict = {
         "total_passages": "Total passages",
@@ -66,17 +69,20 @@ def df_from_nxgraph(nxgraph, component="node"):
             for metric in edge_metrics_dict.keys():
                 element.append(edge[2][metric])
             edges.append(element)
-        columns = ['Source Node', 'Destination Node', 'Source Latitude', 'Source Longitude', 'Destination Latitude', 'Destination Longitude'] + list(edge_metrics_dict.values())
+        columns = ['Source Node', 'Destination Node', 'Source Latitude', 'Source Longitude', 'Destination Latitude',
+                   'Destination Longitude'] + list(edge_metrics_dict.values())
         df = pd.DataFrame(edges, columns=columns)
     else:
         raise Exception("Component not recognized.")
     return df
+
 
 def largest_connected_component_ratio(original_graph, attacked_graph):
     og_cc, cc = nx.connected_components(original_graph), nx.connected_components(attacked_graph)
     og_lcc, lcc = max(og_cc, key=len), max(cc, key=len)
 
     return len(lcc) / len(og_lcc)
+
 
 def global_efficiency_weighted(graph, weight='mileage'):
     n = len(graph)
@@ -88,6 +94,7 @@ def global_efficiency_weighted(graph, weight='mileage'):
     else:
         g_eff = 0
     return g_eff
+
 
 def global_efficiency_ratio(original_graph, attacked_graph):
     return global_efficiency_weighted(attacked_graph) / global_efficiency_weighted(original_graph)
@@ -154,13 +161,15 @@ def plotly_default(pickle_path, day=None, output_path=None):
         fig.write_html(output_path)
     return fig
 
+
 # PLOTLY HEATMAP:
 def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_path=None):
     # DEFAULT:
     component = "node" if component is None else component
     metric = "total_minutes" if metric is None else metric
     # NXGRAPH:
-    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1, day=int(day) if day is not None and day != "" else None)
+    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
+                      day=int(day) if day is not None and day != "" else None)
     # SETTINGS:
     metric_name = ""
     var_factor = 3
@@ -264,7 +273,7 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
             x1, y1 = nxgraph.nodes[edge[1]]['lon'], nxgraph.nodes[edge[1]]['lat']
             # Find the range step of the edge metric:
             for i in range(len(steps) - 1):
-                step=0
+                step = 0
                 if steps[i] <= edge[2][metric] and edge[2][metric] <= steps[i + 1]:
                     step = i
                     break
@@ -287,11 +296,12 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
     # GLOBAL SETTINGS:
     fig_update_layout(fig)
     fig.update_layout(title_text=f"Heatmap: Component=" + component + ", Metric=" + metric_name
-                                 +", Day="+(day if (day is not None and day != "") else "None"))
+                                 + ", Day=" + (day if (day is not None and day != "") else "None"))
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)
     return fig
+
 
 # PLOTLY RESILIENCE: TODO: add edges (red/white) + add sub functions for duplicated code
 def plotly_resilience(pickle_path, day=None, strategy="targetted", component="node", metric="degree_centrality",
@@ -378,6 +388,7 @@ def plotly_resilience(pickle_path, day=None, strategy="targetted", component="no
     if output_path is not None:
         fig.write_html(output_path)
 
+
 # PLOTLY CLUSTERING:
 def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weight='mileage', output_path=None):
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
@@ -454,7 +465,7 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
     # SHORTEST PATH HISTOGRAM -> small diameter
     shortest_paths = list(dict(list(dict(nx.all_pairs_shortest_path_length(nxgraph)).values())[0]).values())
     fig.add_trace(go.Histogram(x=shortest_paths, nbinsx=nbins, name="Shortest Path Length Histogram"), row=1, col=1)
-    path_length_mean = sum(shortest_paths)/len(shortest_paths)
+    path_length_mean = sum(shortest_paths) / len(shortest_paths)
     annot_lenght = "Mean = " + str(round(path_length_mean, 2))
     fig.add_vline(x=path_length_mean, line_dash="dot", annotation_text=annot_lenght, annotation_position="top right",
                   row=1, col=1)
@@ -462,11 +473,11 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
     degrees = list(dict(nx.degree(nxgraph)).values())
     fig.add_trace(go.Histogram(x=degrees, nbinsx=nbins, name="Degree Histogram"), row=1, col=2)
     # CLUSTERING COEFFICIENT HISTOGRAM -> highly clustered
-    digraph = nx.DiGraph(nxgraph) # nx.clustering not implemented for multigraphs
+    digraph = nx.DiGraph(nxgraph)  # nx.clustering not implemented for multigraphs
     clustering_coeffs = list(dict(nx.clustering(digraph)).values())
     fig.add_trace(go.Histogram(x=clustering_coeffs, nbinsx=nbins, name="Clustering Coefficients Histogram"),
                   row=2, col=1)
-    clust_coeff_mean = sum(clustering_coeffs)/len(clustering_coeffs)
+    clust_coeff_mean = sum(clustering_coeffs) / len(clustering_coeffs)
     annot_clust = "Network CC = " + str(round(clust_coeff_mean, 2))
     fig.add_vline(x=clust_coeff_mean, line_dash="dot", annotation_text=annot_clust, annotation_position="top right",
                   row=2, col=1)
@@ -490,7 +501,7 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
                 mode='lines',
                 name="Poisson: λ=" + str(round(step, 3)),
                 x=x,
-                y=np.exp(-step)*np.power(step, x)/factorial(x)), row=2, col=2)
+                y=np.exp(-step) * np.power(step, x) / factorial(x)), row=2, col=2)
     fig.data[10].visible = True
     steps = []
     for i in range(146):
@@ -498,7 +509,7 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
             method="update",
             args=[{"visible": [False] * len(fig.data)}]  # layout attribute
         )
-        step["args"][0]["visible"][i+4] = True  # Toggle i'th trace to "visible"
+        step["args"][0]["visible"][i + 4] = True  # Toggle i'th trace to "visible"
         step["args"][0]["visible"][0] = True
         step["args"][0]["visible"][1] = True
         step["args"][0]["visible"][2] = True
