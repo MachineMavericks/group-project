@@ -246,14 +246,14 @@ def spatial_clustering(nx_graph):
     plt.show()
 
 
-def spectral_clustering(nx_graph):
+def spectral_clustering(nx_graph, edge_weight='total_travels'):
     pos = {node: (nx_graph.nodes[node]['lon'], nx_graph.nodes[node]['lat']) for node in nx_graph.nodes}
     # create the affinity matrix
     affinity_matrix = np.zeros((len(nx_graph), len(nx_graph)))
     for i, u in enumerate(nx_graph.nodes()):
         for j, v in enumerate(nx_graph.nodes()):
             if i != j:
-                affinity_matrix[i, j] = 1 / nx_graph[u][v][0]['total_travels'] if nx_graph.has_edge(u, v) else 0
+                affinity_matrix[i, j] = 1 / nx_graph[u][v][0][edge_weight] if nx_graph.has_edge(u, v) else 0
 
     # perform spectral clustering
     spectral = SpectralClustering(n_clusters=15, affinity='precomputed')
@@ -272,6 +272,7 @@ def spectral_clustering(nx_graph):
 
     # show the plot
     plt.show()
+
 
 # ...
 """
@@ -319,6 +320,27 @@ def betweenness_clustering(nx_graph):
 """
 
 
+def get_node_cluster_info(nx_graph, labels):
+    clusters = {}
+    for node, label in zip(nx_graph.nodes, labels):
+        if label not in clusters:
+            clusters[label] = []
+        clusters[label].append(node)
+
+    avg_degrees = {}
+    avg_deg = 0
+
+    degree = dict(nx_graph.degree())
+    for label, nodes in clusters.items():
+        for node in nodes:
+            avg_deg += degree[node]
+
+        avg_deg /= len(clusters[label])
+        avg_degrees[label] = avg_deg
+
+    print(avg_degrees)
+
+
 # ...
 def find_communities(nx_graph, weight='mileage'):
     pos = {node: (nx_graph.nodes[node]['lon'], nx_graph.nodes[node]['lat']) for node in nx_graph.nodes}
@@ -335,7 +357,7 @@ def find_communities(nx_graph, weight='mileage'):
 # TESTING
 def main():
     nxgraph = NXGraph(pickle_path="../../resources/data/output/graph.pickle", dataset_number=1, day=2)
-    spectral_clustering(nxgraph)
+    spatial_clustering(nxgraph)
 
 
 if __name__ == "__main__":
