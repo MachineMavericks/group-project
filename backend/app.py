@@ -47,10 +47,9 @@ def index():
     return render_template("base.html")
 
 
+# UPLOAD ROUTE:
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
-
-
 @app.route('/choice', methods=['GET', 'POST'])
 def choose_dataset():
     if request.method == 'POST':
@@ -69,6 +68,7 @@ def choose_dataset():
     return render_template("dataset/dataset_selection.html")
 
 
+# MAIN:
 def main():
     # START THE APP:
     app.run(debug=True)
