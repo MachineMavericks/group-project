@@ -1,0 +1,28 @@
+{% extends 'base_plotly.html' %}
+
+{% block filters %}
+<form class="row">
+    <div class="col">
+        <div class="input-group input-group-outline my-3">
+            <label class="form-label">Day</label>
+            <input type="day" name="day" class="form-control text-white">
+        </div>
+    </div>
+    <div class="col">
+        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="algorithm" id="algorithm">
+            <option value="Euclidian k-mean">Euclidian k-mean</option>
+            <option value="Louvain">Louvain</option>
+        </select>
+    </div>
+    <div class="col">
+        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="weight" id="weight">
+            <option value="Euclidian k-mean">mileage</option>
+            <option value="Louvain">total_travels</option>
+        </select>
+    </div>
+    <div class="col">
+        <button class="btn btn-outline-light mt-3 text-bold" type="submit">Compute</button>
+    </div>
+
+</form>
+{% endblock %}

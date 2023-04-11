@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block graph %}
+<div class="row text-xl-center">
+    <p class="text-white text-bold text-5xl">Choose Dataset</p>
+    <br><br>
+</div>
+<div class="row">
+    <div class="col">
+        <a class="card bg-gray-800 btn-outline-white min-height-200 shadow-none align-items-center" href="/default">
+            <i class="material-icons-round m-6 mt-7">train</i>
+            <p class="text-white">Chinese railways</p>
+        </a>
+    </div>
+    <div class="col">
+        <a class="card bg-gray-800 btn-outline-white min-height-200 shadow-none align-items-center" href="/default">
+            <i class="material-icons-round m-6 mt-7">flight</i>
+            <p class="text-white">Airlines traffic</p>
+        </a>
+    </div>
+    <div class="col">
+        {% block upload %}
+        <form method="POST" enctype=multipart/form-data>
+            <input class="card bg-gradient-faded-dark btn-outline-white min-height-200 shadow-none" type="file" name="file">
+            <p>
+                {% block uploadtext %}
+                Drag your files or click in this area.
+                {% endblock %}
+            </p>
+            <div class="row">
+                <div class="col"></div>
+                <div class="col">
+                    <button class="btn btn-outline-light mt-3 text-bold" type="submit">Upload</button>
+                </div>
+            </div>
+        </form>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}
