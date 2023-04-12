@@ -462,7 +462,7 @@ def plotly_small_world(pickle_path, day=None, nb_start_node=None, output_path=No
                       day=int(day) if day is not None and day != "" else None)
     fig = make_subplots(rows=2, cols=2)
     fig.update_layout(title_text=f"Small-World Features " + (
-        "(day " + str(day) + ")" if day is not None and day != "" else ""), height=700)
+        "(day " + str(day) + ")" if day is not None and day != "" else ""), height=700, legend_traceorder="normal")
     nbins = 100
     nb_nd = nxgraph.number_of_nodes()
 
