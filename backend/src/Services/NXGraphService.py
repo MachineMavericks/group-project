@@ -1,4 +1,6 @@
 # IMPORTS=
+import random
+
 import networkx as nx
 from itertools import permutations
 import networkx.algorithms.community as nx_comm
@@ -454,7 +456,8 @@ def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weigh
         fig.write_html(output_path)
 
 
-def plotly_small_world(pickle_path, day=None, output_path=None):
+# PLOTLY SMALL_WORLD:
+def plotly_small_world(pickle_path, day=None, nb_start_node=None, output_path=None):
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
     fig = make_subplots(rows=2, cols=2)
@@ -464,16 +467,29 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
     nb_nd = nxgraph.number_of_nodes()
 
     # SHORTEST PATH HISTOGRAM -> small diameter
-    shortest_paths = list(dict(list(dict(nx.all_pairs_shortest_path_length(nxgraph)).values())[0]).values())
-    fig.add_trace(go.Histogram(x=shortest_paths, nbinsx=nbins, name="Shortest Path Length",
+    nb_start = int(nb_start_node) if nb_start_node is not None and nb_start_node != "" and int(nb_start_node)>0 else 3
+    shortest_paths = []
+    all_seen_paths = []
+    used_start = []
+    for i in range(nb_start):
+        start = random.randrange(nb_nd)
+        while start in used_start:
+            start = random.randrange(nb_nd)
+        used_start.append(start)
+    for start in used_start:
+        shortest_paths = list(dict(list(dict(nx.shortest_path_length(nxgraph)).values())[start]).values())
+        all_seen_paths += shortest_paths
+        fig.add_trace(go.Histogram(x=shortest_paths, nbinsx=nbins, name="SP lengths from node " + str(start),
                                hovertemplate= '<b>Shortest Path Length Histogram</b><br>Shortest path length: %{x}'
                                               '<br>Number of paths: %{y}<br><extra></extra>'), row=1, col=1)
-    path_length_mean = sum(shortest_paths) / len(shortest_paths)
-    annot_lenght = "Mean = " + str(round(path_length_mean, 2))
-    fig.add_vline(x=path_length_mean, line_dash="dot", annotation_text=annot_lenght, annotation_position="top right",
+    path_length_mean = sum(all_seen_paths) / len(all_seen_paths)
+    annot_length = "Mean = " + str(round(path_length_mean, 2))
+    fig.add_vline(x=path_length_mean, line_dash="dot", annotation_text=annot_length, annotation_position="top right",
                   row=1, col=1)
     fig.update_yaxes(title_text="Number of paths", row=1, col=1, title_standoff=0)
-    fig.update_xaxes(title_text="Shortest Path Length", row=1, col=1, title_standoff=0)
+    fig.update_xaxes(title_text="Shortest path length (from " + str(nb_start) + " random nodes)",
+                     row=1, col=1, title_standoff=0)
+    fig.update_layout(barmode='stack')
 
     # DEGREE HISTOGRAM -> some high degree nodes
     degrees = list(dict(nx.degree(nxgraph)).values())
@@ -486,7 +502,7 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
     # CLUSTERING COEFFICIENT HISTOGRAM -> highly clustered
     digraph = nx.DiGraph(nxgraph)  # nx.clustering not implemented for multigraphs
     clustering_coeffs = list(dict(nx.clustering(digraph)).values())
-    fig.add_trace(go.Histogram(x=clustering_coeffs, nbinsx=nbins, name="Clustering Coefficient",
+    fig.add_trace(go.Histogram(x=clustering_coeffs, nbinsx=nbins, name="Clustering coefficients",
                                hovertemplate='<b>Clustering Coefficient Histogram</b><br>Clustering coefficient: %{x}'
                                              '<br>Number of nodes: %{y}<br><extra></extra>'), row=2, col=1)
     clust_coeff_mean = sum(clustering_coeffs) / len(clustering_coeffs)
@@ -507,7 +523,7 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
     for i in range(len(degree_distribution)):
         degree_distribution[i] /= nb_nd
     x = np.arange(0, 30, 1)
-    fig.add_trace(go.Scatter(x=x, y=degree_distribution, mode='lines', name='Degree Distribution',
+    fig.add_trace(go.Scatter(x=x, y=degree_distribution, mode='lines', name='Degree distribution',
                              hovertemplate='<b>Degree Distribution</b><br><i>x=degree</i><br>x: %{x}'
                                              '<br>P(x): %{y}<br><extra></extra>'), row=2, col=2)
     fig.update_yaxes(title_text="P(x)", row=2, col=2, title_standoff=0, range=[0, 0.6])
@@ -532,7 +548,7 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
             go.Scatter(
                 visible=False,
                 mode='lines',
-                name="Power Law: λ=" + str(round(step, 3)),
+                name="Power law: λ=" + str(round(step, 3)),
                 x=x,
                 y=np.power(x, -step),
                 hovertemplate='<b>Power Law Distribution</b>'
@@ -540,20 +556,19 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
                               '<br>x: %{x}'
                               '<br>P(x): %{y}<extra></extra>'
             ), row=2, col=2)
-    fig.data[10].visible = True
-    fig.data[110].visible = True
+    nb_plots = 3 + nb_start
+    fig.data[10 + nb_plots].visible = True
+    fig.data[110 + nb_plots].visible = True
     steps = []
-    for i in range(96):
+    for i in range(100-nb_plots):
         step = dict(
             method="update",
             args=[{"visible": [False] * len(fig.data)}]  # layout attribute
         )
-        step["args"][0]["visible"][i + 4] = True  # Toggle i'th trace to "visible"
-        step["args"][0]["visible"][i + 104] = True  # Toggle i'th trace to "visible"
-        step["args"][0]["visible"][0] = True
-        step["args"][0]["visible"][1] = True
-        step["args"][0]["visible"][2] = True
-        step["args"][0]["visible"][3] = True
+        step["args"][0]["visible"][i + nb_plots] = True  # Toggle i'th trace to "visible"
+        step["args"][0]["visible"][i + nb_plots + 100] = True  # Toggle i'th trace to "visible"
+        for i in range(nb_plots):
+            step["args"][0]["visible"][i] = True
         steps.append(step)
     sliders = [dict(
         active=10,

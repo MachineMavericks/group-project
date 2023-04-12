@@ -80,5 +80,5 @@ def clustering():
 @nxgraph_bp.route('/smallworld', methods=['GET', 'POST'])
 def histogram():
     plotly_small_world(pickle_path=pickle_filepath, output_path='static/output/plotly.html',
-                       day=request.args.get('day'))
+                       day=request.args.get('day'), nb_start_node=request.args.get('nb_start'))
     return render_template("smallworld_plotly.html")
