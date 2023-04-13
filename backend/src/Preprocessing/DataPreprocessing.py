@@ -1,5 +1,7 @@
-import pandas as pd
 import datetime
+import datetime
+from tqdm import tqdm
+import math
 
 # 1. REMOVE DUPLICATED ROWS:
 def remove_duplicates(df):
@@ -87,6 +89,13 @@ def replace_null_stay_times_with_zeroes(df):
     df = df.reset_index(drop=True)
     return df
 
+# 7. REPLACE DAY N by THE N VALUE ONLY:
+def replace_day_values(df):
+    df['date'] = df['date'].str[4:].astype(int)
+    print("Replaced day values by their numeric values.")
+    df = df.reset_index(drop=True)
+    return df
+
 # X. DEDUCE MILEAGES USING TRAINS SPEED METADATA:
 def deduce_mileage_using_speed_and_travel_times(df):
     kmph_speed_dict = {
@@ -119,8 +128,8 @@ def deduce_mileage_using_speed_and_travel_times(df):
     df = df.reset_index(drop=True)
     return df
 
-
-def preprocessing_pipeline(df, save_csv=False, path=None):
+# CHINESE RAILWAY PREPROCESSING PIPELINE:
+def chinese_railway_preprocessing_pipeline(df, save_csv=False, output_path=None):
 
     # SETTINGS=
     original_size = len(df)
@@ -146,6 +155,9 @@ def preprocessing_pipeline(df, save_csv=False, path=None):
     # 6. REPLACE NULL STAY TIMES WITH ZEROES:
     df = replace_null_stay_times_with_zeroes(df)
 
+    # 7. REPLACE DAY N by THE N VALUE ONLY:
+    df = replace_day_values(df)
+
     # X. DEDUCE MILEAGES USING TRAINS SPEED METADATA:
     # df = deduce_mileage_using_speed_and_travel_times(df)  # TODO: This is not working properly. Discuss with teachers.
 
@@ -157,8 +169,112 @@ def preprocessing_pipeline(df, save_csv=False, path=None):
 
     # BONUS. SAVE THE PREPROCESSED DATAFRAME TO A CSV FILE:
     if save_csv == True:
-        df.to_csv(path, index=False)
-        print("Saved dataframe to " + path)
+        df.to_csv(output_path, index=False)
+        print("Saved dataframe to " + output_path)
+    return df
+
+# INDIAN RAILWAY PREPROCESSING PIPELINE:
+def indian_railway_preprocessing_pipeline(df, save_csv=False, output_path=None):
+    # Remove unnecessary columns:
+    df = df.drop(columns=['state', 'name', 'zone', 'address', 'train_name', 'station_name'])
+    df = df.rename(columns={'train_number': 'train', 'id': 'st_no', 'station_code': 'st_id', 'departure': 'dep_time', 'arrival': 'arr_time', 'day': 'date', 'X': 'lon', 'Y': 'lat'})
+    df = df[['train', 'st_no', 'st_id', 'date', 'arr_time', 'dep_time', 'lon', 'lat']]
+    df.sort_values(by=['train', 'st_no'], inplace=True)
+    df = df.reset_index(drop=True)
+    print("Removed unnecessary columns.")
+
+    # Remove duplicate rows:
+    original_size = len(df)
+    df = df.drop_duplicates(subset=['train', 'st_id', 'date', 'arr_time', 'dep_time', 'lon', 'lat'], keep='first')
+    df = df.reset_index(drop=True)
+    print("Removed " + str(original_size - len(df)) + " duplicated rows.")
+
+    # Iterate through the df, and for each train, replace null 'day' values by the previous non-null value (only for each train):
+    print("Replacing null 'day' values by the previous non-null value (only for each train)...")
+    train_id = df.iloc[0]['train']
+    train_ids_to_remove = []
+    for index, row in tqdm(df.iterrows(), total=len(df)):
+        if train_id != row['train']:
+            if no_time_values:
+                train_ids_to_remove.append(df.iloc[index - 1]['train'])
+            train_id = row['train']
+            no_time_values = True
+        if not row['date'] == "None":
+            no_time_values = False
+        if row['arr_time'] == "None" and row['dep_time'] == "None":
+            df.at[index, 'date'] = df.iloc[index - 1]['date']
+    for train_id in train_ids_to_remove:
+        df = df[df.train_number != train_id]
+    df['date'] = df['date'].astype(int)
+    df = df.reset_index(drop=True)
+
+    # Iterate through the df, and for each train, replace starting/ending arr/dep times with their corresponding values:
+    print("Replacing starting/ending arr/dep times with their corresponding values...")
+    train_id = df.iloc[0]['train']
+    df.at[0, 'arr_time'] = df.iloc[0]['dep_time']
+    for index, row in tqdm(df.iterrows(), total=len(df)):
+        if train_id != row['train']:
+            train_id = row['train']
+            df.at[index, 'arr_time'] = row['dep_time']
+            df.at[index - 1, 'dep_time'] = df.iloc[index - 1]['arr_time']
+    df.at[len(df) - 1, 'dep_time'] = df.iloc[len(df) - 1]['arr_time']
+    df = df.reset_index(drop=True)
+
+    # Remove trains whose both the arrival and departure times are null:
+    print("Removing trains whose both the arrival and departure times are null...")
+    corrupted_trains_ids = []
+    train_id = df.iloc[0]['train']
+    is_corrupted = False
+    for index, row in tqdm(df.iterrows(), total=len(df)):
+        if train_id != row['train']:
+            train_id = row['train']
+            if is_corrupted:
+                corrupted_trains_ids.append(df.iloc[index - 1]['train'])
+            is_corrupted = False
+        if row['arr_time'] == "None" and row['dep_time'] == "None":
+            is_corrupted = True
+    for train_id in corrupted_trains_ids:
+        df = df[df.train != train_id]
+    df = df.reset_index(drop=True)
+
+    # Remove rows with null values for lat and lon:
+    df = df[df.lat.notnull() & df.lon.notnull()]
+    df = df.reset_index(drop=True)
+    print("Removed rows with null values for lat and lon (lat == null and lon == null).")
+
+    # Calculate the stay time for each row (times in format HH:MM:SS):
+    print("Calculating the stay time for each row (times in format HH:MM:SS) using the arrival and departure times...")
+    df['stay_time'] = None
+    for index, row in tqdm(df.iterrows(), total=len(df)):
+        df.at[index, 'stay_time'] = (datetime.datetime.strptime(row['dep_time'], '%H:%M:%S') - datetime.datetime.strptime(row['arr_time'], '%H:%M:%S')).seconds // 60
+    df['stay_time'] = df['stay_time'].apply(lambda x: 0 if x < 0 else x)
+    df = df.reset_index(drop=True)
+
+    # Mileage calculation (using relative lat and lon values):
+    print("Calculating mileage (using relative lat and lon values)...")
+    df['mileage'] = None
+    train_id = 0
+    train_mileage_so_far = 0
+    for index, row in tqdm(df.iterrows(), total=len(df)):
+        if train_id != row['train']:
+            train_id = row['train']
+            train_mileage_so_far = 0
+        if index == 0:
+            df.at[index, 'mileage'] = 0
+        else:
+            df.at[index, 'mileage'] = \
+                3956 * 2 * math.asin(
+                math.sqrt(math.sin((math.radians(row['lat']) - math.radians(df.iloc[index - 1]['lat']))/2)**2
+                          + math.cos(math.radians(df.iloc[index - 1]['lat'])) * math.cos(math.radians(row['lat']))
+                          * math.sin((math.radians(row['lon']) - math.radians(df.iloc[index - 1]['lon']))/2)**2)
+            ) + train_mileage_so_far
+            train_mileage_so_far = df.iloc[index]['mileage']
+    df = df.reset_index(drop=True)
+
+    # Save the result to 'schedules_with_station_names.csv' file:
+    if save_csv:
+        df.to_csv(output_path, index=False)
+        print("Saved the result to: " + output_path)
     return df
 
 
