@@ -2,7 +2,6 @@
 import networkx as nx
 from itertools import permutations
 import networkx.algorithms.community as nx_comm
-
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -18,7 +17,6 @@ from src.Models.Graph import Graph
 
 # WARNINGS=
 import warnings
-
 warnings.filterwarnings("ignore")
 
 
@@ -41,7 +39,6 @@ def fig_update_layout(fig):
 
 
 # HELPER FUNCTIONS:
-
 def df_from_nxgraph(nxgraph, component="node"):
     node_metrics_dict = {
         "total_passages": "Total passages",
@@ -56,7 +53,7 @@ def df_from_nxgraph(nxgraph, component="node"):
     if component == "node":
         nodes = []
         for node in nxgraph.nodes(data=True):
-            element = [int(node[0]), node[1]['lat'], node[1]['lon']]
+            element = [node[0], node[1]['lat'], node[1]['lon']]
             for metric in node_metrics_dict.keys():
                 element.append(node[1][metric])
             nodes.append(element)
@@ -76,13 +73,11 @@ def df_from_nxgraph(nxgraph, component="node"):
         raise Exception("Component not recognized.")
     return df
 
-
 def largest_connected_component_ratio(original_graph, attacked_graph):
     og_cc, cc = nx.connected_components(original_graph), nx.connected_components(attacked_graph)
     og_lcc, lcc = max(og_cc, key=len), max(cc, key=len)
 
     return len(lcc) / len(og_lcc)
-
 
 def global_efficiency_weighted(graph, weight='mileage'):
     n = len(graph)
@@ -94,7 +89,6 @@ def global_efficiency_weighted(graph, weight='mileage'):
     else:
         g_eff = 0
     return g_eff
-
 
 def global_efficiency_ratio(original_graph, attacked_graph):
     return global_efficiency_weighted(attacked_graph) / global_efficiency_weighted(original_graph)
@@ -453,7 +447,7 @@ def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weigh
     if output_path is not None:
         fig.write_html(output_path)
 
-
+# PLOTLY SMALL WORLD:
 def plotly_small_world(pickle_path, day=None, output_path=None):
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
