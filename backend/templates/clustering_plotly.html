@@ -1,6 +1,13 @@
 {% extends 'base_plotly.html' %}
 
 {% block filters %}
+<script>
+    function DisplayRelevant() {
+        var Algorithm = document.getElementById("algorithm");
+        var Weight = document.getElementById("weight");
+        Weight.style.display = algorithm.value == "Louvain" ? "block" : "none";
+    }
+</script>
 <form class="row">
     <div class="col">
         <div class="input-group input-group-outline my-3">
@@ -9,15 +16,16 @@
         </div>
     </div>
     <div class="col">
-        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="algorithm" id="algorithm">
-            <option value="Euclidian k-mean">Euclidian k-mean</option>
+        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="algorithm" id="algorithm"
+        onchange="DisplayRelevant()">
             <option value="Louvain">Louvain</option>
+            <option value="Euclidian k-mean">Euclidian k-mean</option>
         </select>
     </div>
     <div class="col">
         <select class="form-select btn-outline-light bg-gray-800 mt-3" name="weight" id="weight">
-            <option value="Euclidian k-mean">mileage</option>
-            <option value="Louvain">total_travels</option>
+            <option value="mileage">Mileage</option>
+            <option value="total_travels">Total travels</option>
         </select>
     </div>
     <div class="col">
