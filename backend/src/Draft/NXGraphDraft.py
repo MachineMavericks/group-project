@@ -356,7 +356,7 @@ def find_communities(nx_graph, weight='mileage'):
 
 # TESTING
 def main():
-    nxgraph = NXGraph(pickle_path="../../resources/data/output/graph.pickle", dataset_number=1, day=2)
+    nxgraph = NXGraph(pickle_path="../../resources/data/output/chinese_railway/graph.pickle", dataset_number=1, day=2)
     spatial_clustering(nxgraph)
 
 

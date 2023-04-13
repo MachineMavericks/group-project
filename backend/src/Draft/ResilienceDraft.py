@@ -108,7 +108,7 @@ def targeted_attack(nx_graph, metric='degree-centrality', fraction=0.01):
 
 # TESTING
 def main():
-    nxgraph = NXGraph(pickle_path="../../resources/data/output/graph.pickle", dataset_number=1, day=None)
+    nxgraph = NXGraph(pickle_path="../../resources/data/output/chinese_railway/graph.pickle", dataset_number=1, day=None)
     targeted_attack(nxgraph)
 
 

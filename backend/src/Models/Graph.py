@@ -4,6 +4,7 @@ import numpy as np
 import warnings
 import os
 import pickle
+from tqdm import tqdm
 
 # MODELS=
 from src.Models.EdgeTravel import EdgeTravel
@@ -19,9 +20,11 @@ from src.Preprocessing.NodePreprocessing import *
 
 class Graph:
     def __init__(self, filepath, output_dir=None, save_csvs=False, save_pickle=False):
-        if os.path.isfile(output_dir + "graph.pickle"):
-            print("Found already existing graph.pickle file.")
-            print("Redundant graph construction aborted.")
+        self.filename = filepath.split('/')[-1].split('.')[0]
+        # CHECK IF THE GRAPH IS ALREADY CONSTRUCTED (ALREADY EXISTING .PICKLE FILE):
+        if os.path.isfile(output_dir + self.filename + '.pickle'):
+            print("Found already existing " + self.filename + ".pickle file, aborted redundant graph construction.")
+        # OTHERWISE, CONSTRUCT THE GRAPH:
         else:
             # START TIMER:
             warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -29,22 +32,32 @@ class Graph:
 
             # READ THE FILE:
             self.filepath = filepath
-            self.df = preprocessing_pipeline(pd.read_csv(filepath, low_memory=False), save_csv=save_csvs, path=((output_dir + 'railway.csv') if save_csvs and (output_dir is not None) else None))\
-                if not os.path.isfile(output_dir + 'railway_pp.csv') else pd.read_csv(output_dir + 'railway_pp.csv', low_memory=False)
-
+            if self.filename == 'indian':
+                self.df = indian_railway_preprocessing_pipeline(pd.read_csv(filepath, low_memory=False), save_csv=save_csvs, output_path=((output_dir + 'indian_pp.csv') if save_csvs and (output_dir is not None) else None))\
+                    if not os.path.isfile(output_dir + 'indian_pp.csv') else pd.read_csv(output_dir + 'indian_pp.csv', low_memory=False)
+            elif self.filename == 'chinese':
+                self.df = chinese_railway_preprocessing_pipeline(pd.read_csv(filepath, low_memory=False), save_csv=save_csvs, output_path=((output_dir + 'chinese_pp.csv') if save_csvs and (output_dir is not None) else None))\
+                    if not os.path.isfile(output_dir + 'chinese_pp.csv') else pd.read_csv(output_dir + 'chinese_pp.csv', low_memory=False)
+            else:
+                raise Exception("Invalid filename, please use 'indian.csv' or 'chinese.csv' railway datasets.")
             print("Constructing the Graph using the preprocessed data...")
 
+            # NODES PREPROCESSING:
+            print("Found already existing " + self.filename + "_npp.csv file, aborted redundant nodes preprocessing .") if os.path.isfile(output_dir + self.filename + '_npp.csv') else None
+            df_ = nodes_preprocessing(self.df,
+                                      save_csv=save_csvs,
+                                      output_path=((output_dir + self.filename + '_npp.csv') if save_csvs and (output_dir is not None) else None))\
+                if not os.path.isfile(output_dir + self.filename + '_npp.csv')\
+                else pd.read_csv(output_dir + self.filename + '_npp.csv', low_memory=False)
             # NODES CONSTRUCTION:
-            df_ = nodes_preprocessing(self.df, save_csv=save_csvs, output_path=((output_dir + 'nodes_pp.csv') if save_csvs and (output_dir is not None) else None))\
-                if not os.path.isfile(output_dir + 'nodes_pp.csv') else pd.read_csv(output_dir + 'nodes_pp.csv', low_memory=False)
+            print("Constructing the nodes...")
             nodes_df = df_.copy()\
                 .groupby(['st_id', 'lat', 'lon']).size().reset_index(name='count')\
                 .sort_values(by=['st_id'], ascending=True)\
                 .reset_index(drop=True)
             nodes_passages_df = df_.copy()
-            print("Constructing the nodes...")
             self._nodes = []
-            for index, row in nodes_df.iterrows():
+            for index, row in tqdm(nodes_df.iterrows(), total=len(nodes_df)):
                 node_passages_df = nodes_passages_df[(nodes_passages_df['st_id'] == row['st_id'])] \
                     .sort_values(by=['arr_time'], ascending=True) \
                     .reset_index(drop=True)
@@ -55,18 +68,22 @@ class Graph:
                 self._nodes.append(Node(row['st_id'], Position(row['lat'], row['lon']), nodes_passages))
             print("Nodes constructed.")
 
+            # EDGES PREPROCESSING:
+            print("Found already existing " + self.filename + "_epp.csv file, aborted redundant edges preprocessing .") if os.path.isfile(output_dir + self.filename + '_epp.csv') else None
+            df_ = edges_preprocessing(self.df,
+                                      save_csv=save_csvs,
+                                      output_path=((output_dir + self.filename + '_epp.csv') if save_csvs and (output_dir is not None) else None))\
+                if not os.path.isfile(output_dir + self.filename + '_epp.csv')\
+                else pd.read_csv(output_dir + self.filename + '_epp.csv', low_memory=False)
             # EDGES CONSTRUCTION:
-            df_ = edges_preprocessing(self.df, save_csv=save_csvs, output_path=((output_dir + 'edges_pp.csv') if save_csvs and (output_dir is not None) else None))\
-                if not os.path.isfile(output_dir + 'edges_pp.csv') else pd.read_csv(output_dir + 'edges_pp.csv', low_memory=False)
             print("Constructing the edges...")
             edges_df = df_.copy() \
                 .groupby(['dep_st_id', 'arr_st_id', 'mileage']).size().reset_index(name='count') \
                 .sort_values(by=['dep_st_id', 'arr_st_id', 'mileage'], ascending=True) \
                 .reset_index(drop=True)
             edge_travels_df = df_.copy()
-
             self._edges = []
-            for index, row in edges_df.iterrows():
+            for index, row in tqdm(edges_df.iterrows(), total=len(edges_df)):
                 edge_travels_df_ = edge_travels_df[(edge_travels_df['dep_st_id'] == row['dep_st_id'])
                                                    & (edge_travels_df['arr_st_id'] == row['arr_st_id'])
                                                    & (edge_travels_df['mileage'] == row['mileage'])] \
@@ -91,9 +108,9 @@ class Graph:
 
             # SAVE THE GRAPH:
             if save_pickle and (output_dir is not None):
-                with open(output_dir+"graph.pickle", "wb") as f:
+                with open(output_dir + self.filename+".pickle", 'wb') as f:
                     pickle.dump(self, f)
-                print("Graph saved in " + output_dir + "graph.pickle")
+                print("Graph saved in " + output_dir + self.filename + ".pickle")
 
     # GETTERS:
     def get_nodes(self):
