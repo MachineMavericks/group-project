@@ -21,22 +21,22 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="apple-touch-icon" sizes="76x76" href=".static/assets/img/apple-icon.png">
-    <link rel="icon" type="image/png" href="./static/logo_machine_maverick.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='assets/img/apple-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo_machine_maverick.png') }}">
     <title>
         Maverick Toolbox
     </title>
     <!--     Fonts and icons     -->
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
     <!-- Nucleo Icons -->
-    <link href="./static/assets/css/nucleo-icons.css" rel="stylesheet" />
-    <link href="./static/assets/css/nucleo-svg.css" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='assets/css/nucleo-icons.css') }}" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='assets/css/nucleo-svg.css') }}" rel="stylesheet" />
     <!-- Font Awesome Icons -->
     <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <!-- CSS Files -->
-    <link id="pagestyle" href="./static/assets/css/material-dashboard.css?v=3.0.0" rel="stylesheet" />
+    <link id="pagestyle" href="{{ url_for('static', filename='assets/css/material-dashboard.css') }}" rel="stylesheet" />
 </head>
 
 <body class="g-sidenav-show  bg-gray-900">
@@ -44,7 +44,7 @@
     <div class="sidenav-header">
         <i class="fas fa-times p-3 cursor-pointer text-white opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
         <a class="navbar-brand m-0" href="/choice">
-            <img src="./static/logo_machine_maverick.png" class="navbar-brand-img h-100" alt="main_logo">
+            <img src="{{ url_for('static', filename='logo_machine_maverick.png') }}" class="navbar-brand-img h-100" alt="main_logo">
             <span class="ms-1 font-weight-bold text-white"> Machine Mavericks</span>
         </a>
     </div>
@@ -59,31 +59,31 @@
                 <div class="collapse" id="chineseRailways" style="">
                     <ul class="nav ">
                         <li class="nav-item ">
-                            <a class="nav-link text-white " href="/default">
+                            <a class="nav-link text-white " href="/default/chinese">
                                 <span class="sidenav-mini-icon"> DFT </span>
                                 <span class="sidenav-normal  ms-2  ps-1"> Default </span>
                             </a>
                         </li>
                         <li class="nav-item ">
-                            <a class="nav-link text-white " href="/heatmap">
+                            <a class="nav-link text-white " href="/heatmap/chinese">
                                 <span class="sidenav-mini-icon"> HTM </span>
                                 <span class="sidenav-normal  ms-2  ps-1"> Heatmap </span>
                             </a>
                         </li>
                         <li class="nav-item ">
-                            <a class="nav-link text-white " href="/resilience">
+                            <a class="nav-link text-white " href="/resilience/chinese">
                                 <span class="sidenav-mini-icon"> RES </span>
                                 <span class="sidenav-normal  ms-2  ps-1"> Resilience </span>
                             </a>
                         </li>
                         <li class="nav-item ">
-                            <a class="nav-link text-white " href="/clustering">
+                            <a class="nav-link text-white " href="/clustering/chinese">
                                 <span class="sidenav-mini-icon"> CLS </span>
                                 <span class="sidenav-normal  ms-2  ps-1"> Clustering </span>
                             </a>
                         </li>
                         <li class="nav-item ">
-                            <a class="nav-link text-white " href="/smallworld">
+                            <a class="nav-link text-white " href="/smallworld/chinese">
                                 <span class="sidenav-mini-icon"> SWF </span>
                                 <span class="sidenav-normal  ms-2  ps-1"> Small-World Features </span>
                             </a>
@@ -92,16 +92,40 @@
                 </div>
             </li>
             <li class="nav-item">
-                <a data-bs-toggle="collapse" href="#airlinesTraffic" class="nav-link text-white" aria-controls="airlinesTraffic" role="button" aria-expanded="true">
-                    <i class="material-icons-round me-2">flight</i>
-                    <span class="nav-link-text ms-2 ps-1">Airlines traffic</span>
+                <a data-bs-toggle="collapse" href="#indianRailways" class="nav-link text-white" aria-controls="airlinesTraffic" role="button" aria-expanded="true">
+                    <i class="material-icons-round me-2">train</i>
+                    <span class="nav-link-text ms-2 ps-1">Indian railways</span>
                 </a>
-                <div class="collapse" id="airlinesTraffic" style="">
+                <div class="collapse" id="indianRailways" style="">
                     <ul class="nav ">
                         <li class="nav-item ">
-                            <a class="nav-link text-white " href="/plot">
-                                <span class="sidenav-mini-icon"> P </span>
-                                <span class="sidenav-normal  ms-2  ps-1"> Plot example </span>
+                            <a class="nav-link text-white " href="/default/indian">
+                                <span class="sidenav-mini-icon"> DFT </span>
+                                <span class="sidenav-normal  ms-2  ps-1"> Default </span>
+                            </a>
+                        </li>
+                        <li class="nav-item ">
+                            <a class="nav-link text-white " href="/heatmap/indian">
+                                <span class="sidenav-mini-icon"> HTM </span>
+                                <span class="sidenav-normal  ms-2  ps-1"> Heatmap </span>
+                            </a>
+                        </li>
+                        <li class="nav-item ">
+                            <a class="nav-link text-white " href="/resilience/indian">
+                                <span class="sidenav-mini-icon"> RES </span>
+                                <span class="sidenav-normal  ms-2  ps-1"> Resilience </span>
+                            </a>
+                        </li>
+                        <li class="nav-item ">
+                            <a class="nav-link text-white " href="/clustering/indian">
+                                <span class="sidenav-mini-icon"> CLS </span>
+                                <span class="sidenav-normal  ms-2  ps-1"> Clustering </span>
+                            </a>
+                        </li>
+                        <li class="nav-item ">
+                            <a class="nav-link text-white " href="/smallworld/indian">
+                                <span class="sidenav-mini-icon"> SWF </span>
+                                <span class="sidenav-normal  ms-2  ps-1"> Small-World Features </span>
                             </a>
                         </li>
                     </ul>
@@ -120,7 +144,7 @@
                     Welcome to this Data Analysis Toolbox. <br>
                     Use the left scrollbar to select the data you want to show. <br>
                     Have fun. <br><br>
-                    <img src="static/logo_machine_maverick.png" alt="logo" width="50%" height="50%" style="float: right">
+                    <img src="{{ url_for('static', filename='logo_machine_maverick.png') }}" alt="logo" width="50%" height="50%" style="float: right">
                 </p>
             </div>
             <div class="col"></div>
@@ -133,11 +157,11 @@
 </main>
 
 <!--   Core JS Files   -->
-<script src="./static/assets/js/core/popper.min.js"></script>
-<script src="./static/assets/js/core/bootstrap.min.js"></script>
-<script src="./static/assets/js/plugins/perfect-scrollbar.min.js"></script>
-<script src="./static/assets/js/plugins/smooth-scrollbar.min.js"></script>
-<script src="./static/assets/js/plugins/chartjs.min.js"></script>
+<script src="{{ url_for('static', filename='assets/js/core/popper.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/core/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/plugins/smooth-scrollbar.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/plugins/chartjs.min.js') }}"></script>
 <script>
     var ctx = document.getElementById("chart-bars").getContext("2d");
 
@@ -397,7 +421,7 @@
 <!-- Github buttons -->
 <script async defer src="https://buttons.github.io/buttons.js"></script>
 <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
-<script src="./static/assets/js/material-dashboard.min.js?v=3.0.0"></script>
+<script src="{{ url_for('static', filename='assets/js/material-dashboard.min.js') }}"></script>
 
 
 </body>

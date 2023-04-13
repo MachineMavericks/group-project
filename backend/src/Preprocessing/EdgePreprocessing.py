@@ -1,5 +1,6 @@
 import datetime
 import pandas as pd
+from tqdm import tqdm
 
 def find_mileages_differences(df_):
     edges_subs = {}
@@ -8,7 +9,7 @@ def find_mileages_differences(df_):
     edge_mileages = []
     double_edge_detector = False
     print("Starting edges analysis.")
-    for index, row in df_.iterrows():
+    for index, row in tqdm(df_.iterrows(), total=len(df_)):
         if row['dep_st_id'] != dp_st_id or row['arr_st_id'] != arr_st_id:
             if double_edge_detector:
                 print("ERROR: EDGE WITH DIFFERENT MILEAGES DETECTED: { DEP_ST_ID=" + str(dp_st_id) + " , ARR_ST_ID=" + str(arr_st_id) + " , EDGE_MILEAGES(" + str(len(edge_mileages)) + ")=" + str(edge_mileages) + " }")
@@ -35,7 +36,7 @@ def edges_preprocessing(df, save_csv=False, output_path=None):
     print("Preprocessing the edges dataframe...")
     # STEP 1: EDGES CONSTRUCTION: CONVERT TRAINS STOPS TO EDGES TRAVELS:
     edgesPassages = {}
-    for index, row in df.iterrows():
+    for index, row in tqdm(df.iterrows(), total=len(df)):
         if index != len(df) - 1 and row['train'] == df.iloc[index + 1]['train']:
             travel_time = (datetime.datetime.strptime(df.iloc[index + 1]['arr_time'], '%H:%M:%S') - datetime.datetime.strptime(row['dep_time'], '%H:%M:%S')).seconds // 60
             # Convert total mileage to mileage between two stations:
@@ -49,7 +50,7 @@ def edges_preprocessing(df, save_csv=False, output_path=None):
             element = {
                 'train_id': row['train'],
                 'dep_st_id': row['st_id'],
-                'day': int(row['date'][4:]),
+                'day': int(row['date']),
                 'dep_date': row['dep_time'],
                 'travel_time': travel_time,
                 'arr_st_id': df.iloc[index + 1]['st_id'],
@@ -77,7 +78,7 @@ def edges_preprocessing(df, save_csv=False, output_path=None):
     df_values = df_values.sort_values(by=['dep_st_id', 'arr_st_id', 'mileage'], ascending=True)
     # In the df_ dataframe, if the mileage is 0, set the mileage to the value of the another instance of a combination
     # of dp_st_id and arr_st_id whose travel time is the closest to their average travel time:
-    for i in range(len(df_)):
+    for i in tqdm(range(len(df_)), total=len(df_)):
         if df_.iloc[i]['mileage'] == 0:
             dp_st_id = df_.iloc[i]['dep_st_id']
             ar_st_id = df_.iloc[i]['arr_st_id']
