@@ -321,6 +321,7 @@ def betweenness_clustering(nx_graph):
 
 
 def get_node_cluster_info(nx_graph, labels):
+    # TODO: add load centrality and average mileage/euclidian distance + highest and lowest metric values
     clusters = {}
     for node, label in zip(nx_graph.nodes, labels):
         if label not in clusters:
@@ -330,13 +331,20 @@ def get_node_cluster_info(nx_graph, labels):
     avg_degrees = {}
     avg_deg = 0
 
-    degree = dict(nx_graph.degree())
+    avg_bet = {}
+    avg_between = 0
+
+    degree = dict(nx_graph.degree_centrality())
+    between = dict(nx_graph.betweenness_centrality())
     for label, nodes in clusters.items():
         for node in nodes:
             avg_deg += degree[node]
+            avg_between += between[node]
 
         avg_deg /= len(clusters[label])
+        avg_between /= len(clusters[label])
         avg_degrees[label] = avg_deg
+        avg_bet[label] = avg_between
 
     print(avg_degrees)
 
