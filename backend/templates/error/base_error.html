@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block graph %}
+<div class="row">
+  <div class="col"></div>
+  <div class="col">
+    <br><br><br><br><br>
+    <h3 class="text-lg-center" style="color:red">ERROR :(</h3>
+    <div class="card bg-gradient-danger">
+      <br>
+      <i class="material-icons-round m-2 align-self-center" style="color:black; font-size: xxx-large">warning</i>
+      <br>
+      {% block error_content %}{% endblock %}
+      <br>
+    </div>
+  </div>
+  <div class="col"></div>
+</div>
+{% endblock %}
+
+{% block textform %}
+{% endblock %}

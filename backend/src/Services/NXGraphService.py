@@ -13,6 +13,8 @@ from kneed import KneeLocator
 from sklearn.cluster import KMeans
 from scipy.special import factorial
 import time
+from bs4 import BeautifulSoup as bs
+import re
 
 # MODELS=
 from src.Models.NXGraph import NXGraph
@@ -20,7 +22,17 @@ from src.Models.Graph import Graph
 
 # WARNINGS=
 import warnings
+
 warnings.filterwarnings("ignore")
+
+
+def set_custom_error(my_error):
+    html = open('templates/error/custom_error.html')
+    soup = bs(html, 'html.parser')
+    old_text = soup.find("p", {"id": "err"})
+    old_text.find(text=re.compile(old_text.get_text())).replace_with(my_error)
+    with open("templates/error/custom_error.html", "wb") as f_output:
+        f_output.write(soup.prettify("utf-8"))
 
 
 # COMMON DATA/SETTINGS FUNCTIONS:
@@ -76,11 +88,13 @@ def df_from_nxgraph(nxgraph, component="node"):
         raise Exception("Component not recognized.")
     return df
 
+
 def largest_connected_component_ratio(original_graph, attacked_graph):
     og_cc, cc = nx.connected_components(original_graph), nx.connected_components(attacked_graph)
     og_lcc, lcc = max(og_cc, key=len), max(cc, key=len)
 
     return len(lcc) / len(og_lcc)
+
 
 def global_efficiency_weighted(graph, weight='mileage'):
     n = len(graph)
@@ -92,6 +106,7 @@ def global_efficiency_weighted(graph, weight='mileage'):
     else:
         g_eff = 0
     return g_eff
+
 
 def global_efficiency_ratio(original_graph, attacked_graph):
     return global_efficiency_weighted(attacked_graph) / global_efficiency_weighted(original_graph)
@@ -192,7 +207,8 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
             closeness_centrality = nx.closeness_centrality(nxgraph)
             nx.set_node_attributes(nxgraph, closeness_centrality, 'closeness_centrality')
         else:
-            raise NotImplementedError("Metric not implemented")
+            set_custom_error("Metric not implemented!")
+            return
         # PLOTTING SETTINGS:
         min_metric = min([node[1][metric] for node in nxgraph.nodes(data=True)])
         max_metric = max([node[1][metric] for node in nxgraph.nodes(data=True)])
@@ -223,16 +239,19 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
         elif metric == "total_mileage":
             metric_name = "Total mileage"
         elif metric == "degree_centrality":
-            raise NotImplementedError("Degree centrality not implemented for edges")
+            set_custom_error("Degree centrality not implemented for edges!")
+            return
         elif metric == "betweenness_centrality":
             metric_name = "Betweenness centrality"
             print("Gathering betweenness centralities...")
             betweenness_centrality = nx.edge_betweenness_centrality(nxgraph)
             nx.set_edge_attributes(nxgraph, betweenness_centrality, 'betweenness_centrality')
         elif metric == "closeness_centrality":
-            raise NotImplementedError("Closeness centrality not implemented for edges")
+            set_custom_error("Closeness centrality not implemented for edges!")
+            return
         else:
-            raise NotImplementedError("Metric not implemented")
+            set_custom_error("Metric not implemented")
+            return
         # DUMMY PLOT:
         df_nodes = df_from_nxgraph(nxgraph, component="node")
         fig = px.scatter_mapbox(df_nodes[df_nodes["Node ID"] == -1], lat="Latitude", lon="Longitude",
@@ -309,7 +328,7 @@ def plotly_resilience(pickle_path, day=None, strategy="targetted", component="no
     strategy = "targetted" if strategy is None else strategy
     component = "node" if component is None else component
     metric = "degree_centrality" if metric is None else metric
-    fraction = "0.01" if fraction is None else fraction
+    fraction = "0.01" if fraction is None or fraction is "" else fraction
     fraction = float(fraction)
     if strategy == "targetted":
         if component == "node":
@@ -336,12 +355,15 @@ def plotly_resilience(pickle_path, day=None, strategy="targetted", component="no
             print("Largest connected component ratio: ", lcc)
             print("Global efficiency ratio: ", global_eff)
         elif component == "edge":
-            raise NotImplementedError("Targetted edge resilience not implemented yet.")
+            set_custom_error("Targetted edge resilience not implemented yet...")
+            return
     elif strategy == "random":
         if component == "node":
-            raise NotImplementedError("Random node resilience not implemented yet.")
+            set_custom_error("Random node resilience not implemented yet...")
+            return
         elif component == "edge":
-            raise NotImplementedError("Random edge resilience not implemented yet.")
+            set_custom_error("Random edge resilience not implemented yet...")
+            return
     # PLOT:
     init_nodes = []
     for node in nxgraph.nodes(data=True):
@@ -384,6 +406,7 @@ def plotly_resilience(pickle_path, day=None, strategy="targetted", component="no
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)
+    return fig
 
 
 # PLOTLY CLUSTERING:
@@ -449,6 +472,8 @@ def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weigh
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)
+    return fig
+
 
 # PLOTLY SMALL WORLD:
 def plotly_small_world(pickle_path, day=None, output_path=None):
@@ -522,7 +547,7 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
     x = np.arange(0, 30, 1)
     fig.add_trace(go.Scatter(x=x, y=degree_distribution, mode='lines', name='Degree distribution',
                              hovertemplate='<b>Degree Distribution</b><br><i>x=degree</i><br>x: %{x}'
-                                             '<br>P(x): %{y}<br><extra></extra>'), row=2, col=2)
+                                           '<br>P(x): %{y}<br><extra></extra>'), row=2, col=2)
     fig.update_yaxes(title_text="P(x)", row=2, col=2, title_standoff=0, range=[0, 0.6])
     fig.update_xaxes(title_text="x", row=2, col=2, title_standoff=0)
 
@@ -578,3 +603,4 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)
+    return fig

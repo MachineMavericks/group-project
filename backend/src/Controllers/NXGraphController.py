@@ -56,31 +56,35 @@ def default(railway):
         return render_template("default_plotly.html")
     else:
         raise Exception("No pickle file found for the specified railway.")
-        # TODO: ADD ERROR PAGE (return render_template("error.html"))
+        return render_template("error/pickle_error.html")
 
 
 @nxgraph_bp.route('/heatmap/<string:railway>/', methods=['GET', 'POST'])
 def heatmap(railway):
     if os.path.isfile("static/output/" + railway + ".pickle"):
-        plotly_heatmap(pickle_path="static/output/" + railway + ".pickle", day=request.args.get('day'), component=request.args.get('component'),
-                       metric=request.args.get('metric'), output_path='static/output/plotly.html')
-        return render_template("heatmap_plotly.html")
+        if plotly_heatmap(pickle_path="static/output/" + railway + ".pickle", day=request.args.get('day'), component=request.args.get('component'),
+                       metric=request.args.get('metric'), output_path='static/output/plotly.html'):
+            return render_template("heatmap_plotly.html")
+        else:
+            return render_template("error/custom_error.html")
     else:
         raise Exception("No pickle file found for the specified railway.")
-        # TODO: ADD ERROR PAGE (return render_template("error.html"))
+        return render_template("error/pickle_error.html")
 
 
 @nxgraph_bp.route('/resiliency/<string:railway>/', methods=['GET', 'POST'])
 def resilience(railway):
     if os.path.isfile("static/output/" + railway + ".pickle"):
-        plotly_resilience(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
+        if plotly_resilience(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
                       strategy=request.args.get('type'),
                       component=request.args.get('component'), metric=request.args.get('metric'),
-                      day=request.args.get('day'), fraction=request.args.get('fraction'))
-        return render_template("resilience_plotly.html")
+                      day=request.args.get('day'), fraction=request.args.get('fraction')):
+            return render_template("resilience_plotly.html")
+        else:
+            return render_template("error/custom_error.html")
     else:
         raise Exception("No pickle file found for the specified railway.")
-        # TODO: ADD ERROR PAGE (return render_template("error.html"))
+        return render_template("error/pickle_error.html")
 
 
 @nxgraph_bp.route('/clustering/<string:railway>/', methods=['GET', 'POST'])
@@ -93,14 +97,14 @@ def clustering(railway):
         return render_template("clustering_plotly.html")
     else:
         raise Exception("No pickle file found for the specified railway.")
-        # TODO: ADD ERROR PAGE (return render_template("error.html"))
+        return render_template("error/pickle_error.html")
 
 @nxgraph_bp.route('/smallworld/<string:railway>/', methods=['GET', 'POST'])
-def histogram(railway):
+def smallworld(railway):
     if os.path.isfile("static/output/" + railway + ".pickle"):
         plotly_small_world(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
                            day=request.args.get('day'))
         return render_template("smallworld_plotly.html")
     else:
         raise Exception("No pickle file found for the specified railway.")
-        # TODO: ADD ERROR PAGE (return render_template("error.html"))
+        return render_template("error/pickle_error.html")
