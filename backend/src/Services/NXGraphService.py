@@ -410,7 +410,77 @@ def plotly_resilience(pickle_path, day=None, strategy="targetted", component="no
 
 
 # PLOTLY CLUSTERING:
-def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weight='mileage', output_path=None):
+
+# helper functions
+
+
+def show_cluster_info(nx_graph, clusters, fig, weight, adv_legend):
+    # TODO: add load centrality and average mileage/euclidian distance + highest and lowest metric values
+    avg_degrees, avg_bet, avg_load = {}, {}, {}
+    avg_deg, avg_between, avg_ld = 0, 0, 0
+
+    if adv_legend:
+        degree = nx.degree_centrality(nx_graph)
+        between = nx.betweenness_centrality(nx_graph, weight=weight)
+        load = nx.load_centrality(nx_graph, weight=weight)
+    i = 0
+    for cluster in clusters:
+        i += 1
+        if adv_legend:
+            for node in cluster:
+                avg_deg += degree[node]
+                avg_between += between[node]
+                avg_ld += load[node]
+
+            avg_deg /= len(cluster)
+            avg_between /= len(cluster)
+            avg_ld /= len(cluster)
+
+            avg_degrees[i] = avg_deg
+            avg_bet[i] = avg_between
+            avg_load[i] = avg_ld
+
+        # Create a scatter trace for the cluster
+        cluster_lat = [np.round(nx_graph.nodes[node]['lat'], 2) for node in cluster]
+        cluster_lon = [np.round(nx_graph.nodes[node]['lon'], 2) for node in cluster]
+        cluster_text = [f'Node n°{node}<br>Cluster n°{i}<br>' for node in cluster]
+
+        fig.add_trace(
+            go.Scattermapbox(
+                lat=cluster_lat,
+                lon=cluster_lon,
+                mode='markers',
+                marker=dict(size=5, color=i),
+                name=(f'Cluster {i}<br>'
+                      f'<span style="font-size: 10px;">'
+                      f'Betweenness centrality: {avg_bet[i]:.4f}<br>'
+                      f'Degree centrality: {avg_degrees[i]:.4f}<br>'
+                      f'Load centrality: {avg_load[i]:.4f}'
+                      f'</span>') if adv_legend else (
+                    f'Cluster {i}<br>'
+                    f'<span style="font-size: 10px;">'
+                    f'</span>'),
+                hoverinfo='text',
+                hovertext=cluster_text
+            )
+        )
+
+    # Create custom legend with metrics for each cluster
+    legend_items = []
+    for i in range(1, len(clusters) + 1):
+        legend_title = f'Cluster {i}'
+        metrics_text = f'Cluster {i}<br>' \
+                       f'Average degree centrality: {avg_degrees[i]:.6f}<br>' \
+                       f'Average betweenness centrality: {avg_bet[i]:.6f}<br>' if adv_legend else f'Cluster {i}<br>'
+
+        legend_items.append(dict(label=metrics_text, method='update', args=[
+            {'title': metrics_text, 'showlegend': True, 'legend_title': legend_title,
+             'legend': {'orientation': 'h', 'yanchor': 'bottom', 'y': -0.25, 'xanchor': 'left', 'x': 0}}
+        ]))
+
+
+# service
+def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weight='mileage', output_path=None, adv_legend=False):
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
     # DEFAULT:
@@ -460,19 +530,15 @@ def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weigh
                             center=dict(lat=36, lon=117), zoom=3.5,
                             mapbox_style="open-street-map", height=800)
 
-    fig.add_scattermapbox(lat=df['Latitude'], lon=df['Longitude'], mode='markers',
-                          marker=dict(size=5, color=df['Color']),
-                          name="Nodes", hoverinfo="text",
-                          hovertext="Node n°" + df['Node ID'].astype(str) + "<br>" + 'Cluster n°'
-                                    + df['Community'].astype(str))
-
+    show_cluster_info(nxgraph, communities, fig, weight, adv_legend=adv_legend)
     # GLOBAL SETTINGS:
     fig_update_layout(fig)
-    fig.update_layout(title_text=f"Clustering: Algorithm={algorithm} Day={day} Weight={weight}")
+    fig.update_layout(title_text=f"Clustering: Algorithm={algorithm}, Day={day}, Weight={weight}")
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)
     return fig
+
 
 
 # PLOTLY SMALL WORLD:

@@ -51,6 +51,8 @@ def index():
 # UPLOAD ROUTE:
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+
 @app.route('/choice', methods=['GET', 'POST'])
 def choose_dataset():
     if request.method == 'POST':

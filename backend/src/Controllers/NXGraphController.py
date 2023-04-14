@@ -93,7 +93,8 @@ def clustering(railway):
         plotly_clustering(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
                           algorithm=request.args.get('algorithm'),
                           weight=request.args.get('weight'),
-                          day=request.args.get('day'))
+                          day=request.args.get('day'),
+                          adv_legend=True if request.args.get('adv_legend') == "true" else False)
         return render_template("clustering_plotly.html")
     else:
         raise Exception("No pickle file found for the specified railway.")
