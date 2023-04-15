@@ -16,23 +16,24 @@
         </div>
     </div>
     <div class="col">
-        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="algorithm" id="algorithm"
-        onchange="DisplayRelevant()">
+        <select class="form-select btn-outline-light bg-gray-800 mt-3 ps-2" name="algorithm" id="algorithm"
+                onchange="DisplayRelevant()">
             <option value="Louvain">Louvain</option>
             <option value="Euclidian k-mean">Euclidian k-mean</option>
         </select>
     </div>
     <div class="col">
-        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="weight" id="weight">
+        <select class="form-select btn-outline-light bg-gray-800 mt-3 ps-2" name="weight" id="weight">
             <option value="mileage">Mileage</option>
             <option value="total_travels">Total travels</option>
         </select>
     </div>
+
     <div class="col">
-        <select class="form-select btn-outline-light bg-gray-800 mt-3" name="adv_legend" id="adv_legend">
-            <option value="false">Disable advanced legend</option>
-            <option value="true">Enable advanced legend</option>
-        </select>
+        <div class="form-check form-select btn-outline-light bg-gray-800 mt-3 ps-2">
+            <input class="form-check-input ms-auto " type="checkbox" value="true" name="adv_legend" id="check">
+            <label class="form-check-label  mb-0 text-white" for="check">Advanced Legend</label>
+        </div>
     </div>
     <div class="col">
         <button class="btn btn-outline-light mt-3 text-bold" type="submit">Compute</button>
