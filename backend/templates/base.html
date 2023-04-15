@@ -37,6 +37,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <!-- CSS Files -->
     <link id="pagestyle" href="{{ url_for('static', filename='assets/css/material-dashboard.css') }}" rel="stylesheet" />
+    <script src ="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 </head>
 
 <body class="g-sidenav-show  bg-gray-900">
@@ -51,7 +52,7 @@
     <hr class="horizontal light mt-0 mb-2">
     <div class="collapse navbar-collapse  w-auto  h-auto" id="sidenav-collapse-main">
         <ul class="navbar-nav">
-            <li class="nav-item">
+            <li class="nav-item" id="china">
                 <a data-bs-toggle="collapse" href="#chineseRailways" class="nav-link text-white" aria-controls="chineseRailways" role="button" aria-expanded="true">
                     <i class="material-icons-round me-2">train</i>
                     <span class="nav-link-text ms-2 ps-1">Chinese railways</span>
@@ -91,7 +92,7 @@
                     </ul>
                 </div>
             </li>
-            <li class="nav-item">
+            <li class="nav-item" id="india">
                 <a data-bs-toggle="collapse" href="#indianRailways" class="nav-link text-white" aria-controls="airlinesTraffic" role="button" aria-expanded="true">
                     <i class="material-icons-round me-2">train</i>
                     <span class="nav-link-text ms-2 ps-1">Indian railways</span>
@@ -423,6 +424,38 @@
 <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
 <script src="{{ url_for('static', filename='assets/js/material-dashboard.min.js') }}"></script>
 
+<script>
+    let chinese_file_path = 'static/output/chinese.pickle'
+    let indian_file_path = 'static/output/indian.pickle'
+    let China = document.getElementById("china")
+    let India = document.getElementById("india")
+    function checkChineseFile() {
+        $.ajax({
+            url: chinese_file_path,
+            type: 'HEAD',
+            success: function () {
+                China.style.display = "block"
+            },
+            error: function () {
+                China.style.display = "none"
+            },
+        })
+    }
+    function checkIndianFile() {
+        $.ajax({
+            url: indian_file_path,
+            type: 'HEAD',
+            success: function () {
+                India.style.display = "block"
+            },
+            error: function () {
+                India.style.display = "none"
+            },
+        })
+    }
+    window.onload = checkIndianFile()
+    window.onload = checkChineseFile()
+</script>
 
 </body>
 
