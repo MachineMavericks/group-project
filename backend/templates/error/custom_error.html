@@ -1,7 +1,14 @@
 {% extends 'error/base_error.html' %}
 
+{% block addscript %}
+<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script>
+    $(function() {
+        $("#includeHtml").load("{{url_for('static', filename='output/custom_error.html') }}");
+    });
+</script>
+{% endblock %}
+
 {% block error_content %}
-<p class="text-bold align-self-center text-lg-center" id="err" style="color:black">
- Targetted edge resilience not implemented yet...
-</p>
+<div id="includeHtml"></div>
 {% endblock %}

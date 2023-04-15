@@ -13,8 +13,6 @@ from kneed import KneeLocator
 from sklearn.cluster import KMeans
 from scipy.special import factorial
 import time
-from bs4 import BeautifulSoup as bs
-import re
 
 # MODELS=
 from src.Models.NXGraph import NXGraph
@@ -27,12 +25,10 @@ warnings.filterwarnings("ignore")
 
 
 def set_custom_error(my_error):
-    html = open('templates/error/custom_error.html')
-    soup = bs(html, 'html.parser')
-    old_text = soup.find("p", {"id": "err"})
-    old_text.find(text=re.compile(old_text.get_text())).replace_with(my_error)
-    with open("templates/error/custom_error.html", "wb") as f_output:
-        f_output.write(soup.prettify("utf-8"))
+    file = open("static/output/custom_error.html", "w")
+    file.write('<p class="text-bold align-self-center text-lg-center" id="err" style="color:black">'
+               + my_error + '</p>')
+    file.close()
 
 
 # COMMON DATA/SETTINGS FUNCTIONS:
