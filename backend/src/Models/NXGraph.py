@@ -17,32 +17,33 @@ class NXGraph(nx.MultiGraph):
             if dataset_number == 1:
                 regarded_days = [day_ for day_ in [1, 2, 3, 4] if day % day_ == 0] if day is not None else [1, 2, 3, 4]
                 regarded_nodes = []
-                for edge in graph.get_edges():
-                    travels = edge.get_travels()
-                    if day is not None:
-                        travels = [travel for travel in travels if travel.get_day() in regarded_days]
-                    if len(travels) > 0:
-                        total_minutes = sum([int(travel.get_travel_time()) for travel in travels])
-                        mileage = edge.get_mileage()
-                        total_mileage = mileage * len(travels)
-                        self.add_edge(
-                            u_for_edge=edge.get_fromNode().get_id(),
-                            v_for_edge=edge.get_destNode().get_id(),
-                            fromLat=edge.get_fromNode().get_position().get_lat(),
-                            fromLon=edge.get_fromNode().get_position().get_lon(),
-                            destLat=edge.get_destNode().get_position().get_lat(),
-                            destLon=edge.get_destNode().get_position().get_lon(),
-                            mileage=mileage,
-                            total_travels=len(travels),
-                            total_minutes=total_minutes,
-                            total_mileage=total_mileage,
-                            working_days=list(set([int(travel.get_day()) for travel in edge.get_travels()]))
-                        )
-                        if edge.get_fromNode().get_id() not in regarded_nodes:
-                            regarded_nodes.append(edge.get_fromNode().get_id())
-                        if edge.get_destNode().get_id() not in regarded_nodes:
-                            regarded_nodes.append(edge.get_destNode().get_id())
-                for node in graph.get_nodes():
+                for list_of_edges in graph.get_edges().values():
+                    for edge in list_of_edges:
+                        travels = edge.get_travels()
+                        if day is not None:
+                            travels = [travel for travel in travels if travel.get_day() in regarded_days]
+                        if len(travels) > 0:
+                            total_minutes = sum([int(travel.get_travel_time()) for travel in travels])
+                            mileage = edge.get_mileage()
+                            total_mileage = mileage * len(travels)
+                            self.add_edge(
+                                u_for_edge=edge.get_fromNode().get_id(),
+                                v_for_edge=edge.get_destNode().get_id(),
+                                fromLat=edge.get_fromNode().get_position().get_lat(),
+                                fromLon=edge.get_fromNode().get_position().get_lon(),
+                                destLat=edge.get_destNode().get_position().get_lat(),
+                                destLon=edge.get_destNode().get_position().get_lon(),
+                                mileage=mileage,
+                                total_travels=len(travels),
+                                total_minutes=total_minutes,
+                                total_mileage=total_mileage,
+                                working_days=list(set([int(travel.get_day()) for travel in edge.get_travels()]))
+                            )
+                            if edge.get_fromNode().get_id() not in regarded_nodes:
+                                regarded_nodes.append(edge.get_fromNode().get_id())
+                            if edge.get_destNode().get_id() not in regarded_nodes:
+                                regarded_nodes.append(edge.get_destNode().get_id())
+                for node in graph.get_nodes().values():
                     if node.get_id() in regarded_nodes:
                         passages = node.get_passages()
                         if day is not None:
