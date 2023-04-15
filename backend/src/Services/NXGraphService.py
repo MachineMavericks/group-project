@@ -161,9 +161,9 @@ def plotly_default(pickle_path, day=None, output_path=None):
     # GLOBAL SETTINGS:
     fig_update_layout(fig)
     # TITLE:
-    fig.update_layout(title_text=f"Default plotly window " + (
-        "(day=" + str(day) + ", " if day is not None and day != "" else "(") + "nodes=" + str(
-        len(nxgraph.nodes())) + ", edges=" + str(len(nxgraph.edges())) + ")")
+    fig.update_layout(title_text=f"Default Plotly Window " + (
+        "(Day " + str(day) + ", " if day is not None and day != "" else "(") + str(
+        len(nxgraph.nodes())) + " nodes and " + str(len(nxgraph.edges())) + " edges)")
     # OUTPUT:
     if output_path is not None:
         fig.write_html(output_path)
@@ -308,7 +308,7 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
     # GLOBAL SETTINGS:
     fig_update_layout(fig)
     fig.update_layout(title_text=f"Heatmap: Component=" + component + ", Metric=" + metric_name
-                                 + ", Day=" + (day if (day is not None and day != "") else "None"))
+                                 + (f", Day={day}" if day is not None and day != "" else ""))
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)
@@ -395,7 +395,8 @@ def plotly_resilience(pickle_path, day=None, strategy="targetted", component="no
     fig_update_layout(fig)
     fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
     fig.update_layout(
-        title_text=f"Resilience: Strategy={strategy}, Component={component}, Metric={metric}, Fraction={fraction}, Day={day}",
+        title_text=f"Resilience: Strategy={strategy}, Component={component}, Metric={metric}, Fraction={fraction}"
+                   + (f"Day={day}" if day is not None and day != "" else ""),
         title_font_color="white",
         title_font_size=20,
         title_x=0.5)
@@ -529,7 +530,12 @@ def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weigh
     show_cluster_info(nxgraph, communities, fig, weight, adv_legend=adv_legend)
     # GLOBAL SETTINGS:
     fig_update_layout(fig)
-    fig.update_layout(title_text=f"Clustering: Algorithm={algorithm}, Day={day}, Weight={weight}")
+    clust_title = f"Clustering: Algorithm={algorithm}"
+    if day is not None and day != "":
+        clust_title += f", Day={day}"
+    if algorithm == "Louvain":
+        clust_title += f", Weight={weight}"
+    fig.update_layout(title_text=clust_title)
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)
