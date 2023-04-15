@@ -13810,7 +13810,7 @@ body.dark-version {
     margin-top: 0.25rem;
     position: relative; }
     .form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked, .form-check:not(.form-switch) .form-check-input[type="radio"]:checked {
-      border-color: #e91e63; }
+      border-color: #ff6b65; }
   .form-check:not(.form-switch) .form-check-input[type="checkbox"] {
     background-image: none; }
     .form-check:not(.form-switch) .form-check-input[type="checkbox"]:after {
@@ -13827,7 +13827,7 @@ body.dark-version {
       font-size: 0.67rem;
       opacity: 0; }
     .form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked {
-      background: #e91e63; }
+      background: #ff6b65; }
       .form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked:after {
         opacity: 1; }
   .form-check:not(.form-switch) .form-check-input[type="radio"] {
