@@ -62,11 +62,9 @@ def default(railway):
 @nxgraph_bp.route('/heatmap/<string:railway>/', methods=['GET', 'POST'])
 def heatmap(railway):
     if os.path.isfile("static/output/" + railway + ".pickle"):
-        if plotly_heatmap(pickle_path="static/output/" + railway + ".pickle", day=request.args.get('day'), component=request.args.get('component'),
-                       metric=request.args.get('metric'), output_path='static/output/plotly.html'):
-            return render_template("heatmap_plotly.html")
-        else:
-            return render_template("error/custom_error.html")
+        plotly_heatmap(pickle_path="static/output/" + railway + ".pickle", day=request.args.get('day'), component=request.args.get('component'),
+                          metric=request.args.get('metric'), output_path='static/output/plotly.html')
+        return render_template("heatmap_plotly.html")
     else:
         raise Exception("No pickle file found for the specified railway.")
         return render_template("error/pickle_error.html")
@@ -75,13 +73,11 @@ def heatmap(railway):
 @nxgraph_bp.route('/resilience/<string:railway>/', methods=['GET', 'POST'])
 def resilience(railway):
     if os.path.isfile("static/output/" + railway + ".pickle"):
-        if plotly_resilience(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
-                      strategy=request.args.get('type'),
-                      component=request.args.get('component'), metric=request.args.get('metric'),
-                      day=request.args.get('day'), fraction=request.args.get('fraction')):
-            return render_template("resilience_plotly.html")
-        else:
-            return render_template("error/custom_error.html")
+        plotly_resilience(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
+                          strategy=request.args.get('type'),
+                          component=request.args.get('component'), metric=request.args.get('metric'),
+                          day=request.args.get('day'), fraction=request.args.get('fraction'))
+        return render_template("resilience_plotly.html")
     else:
         raise Exception("No pickle file found for the specified railway.")
         return render_template("error/pickle_error.html")

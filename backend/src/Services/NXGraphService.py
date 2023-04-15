@@ -25,9 +25,15 @@ warnings.filterwarnings("ignore")
 
 
 def set_custom_error(my_error):
-    file = open("static/output/custom_error.html", "w")
-    file.write('<p class="text-bold align-self-center text-lg-center" id="err" style="color:black">'
-               + my_error + '</p>')
+    file = open("static/output/plotly.html", "w")
+    file.write('<div class="row">'
+                '<div class="col"></div><div class="col"><br>'
+                '<h3 class="text-lg-center" style="color:red">ERROR :(</h3>'
+                '<div class="card bg-gradient-danger"><br>'
+                '<i class="material-icons-round m-2 align-self-center" style="color:black; font-size: xxx-large">'
+                'warning</i><br>'
+                '<p class="text-bold align-self-center text-lg-center" id="err" style="color:black">'+ my_error + '</p>'
+                '<br></div></div><div class="col"></div></div><br><br>')
     file.close()
 
 
@@ -204,7 +210,7 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
             nx.set_node_attributes(nxgraph, closeness_centrality, 'closeness_centrality')
         else:
             set_custom_error("Metric not implemented!")
-            return
+            return 1
         # PLOTTING SETTINGS:
         min_metric = min([node[1][metric] for node in nxgraph.nodes(data=True)])
         max_metric = max([node[1][metric] for node in nxgraph.nodes(data=True)])
@@ -244,10 +250,10 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
             nx.set_edge_attributes(nxgraph, betweenness_centrality, 'betweenness_centrality')
         elif metric == "closeness_centrality":
             set_custom_error("Closeness centrality not implemented for edges!")
-            return
+            return 1
         else:
             set_custom_error("Metric not implemented")
-            return
+            return 1
         # DUMMY PLOT:
         df_nodes = df_from_nxgraph(nxgraph, component="node")
         fig = px.scatter_mapbox(df_nodes[df_nodes["Node ID"] == -1], lat="Latitude", lon="Longitude",
@@ -352,14 +358,14 @@ def plotly_resilience(pickle_path, day=None, strategy="targetted", component="no
             print("Global efficiency ratio: ", global_eff)
         elif component == "edge":
             set_custom_error("Targetted edge resilience not implemented yet...")
-            return
+            return 1
     elif strategy == "random":
         if component == "node":
             set_custom_error("Random node resilience not implemented yet...")
-            return
+            return 1
         elif component == "edge":
             set_custom_error("Random edge resilience not implemented yet...")
-            return
+            return 1
     # PLOT:
     init_nodes = []
     for node in nxgraph.nodes(data=True):
