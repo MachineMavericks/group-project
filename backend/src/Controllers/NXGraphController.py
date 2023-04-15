@@ -72,7 +72,7 @@ def heatmap(railway):
         return render_template("error/pickle_error.html")
 
 
-@nxgraph_bp.route('/resiliency/<string:railway>/', methods=['GET', 'POST'])
+@nxgraph_bp.route('/resilience/<string:railway>/', methods=['GET', 'POST'])
 def resilience(railway):
     if os.path.isfile("static/output/" + railway + ".pickle"):
         if plotly_resilience(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
