@@ -20,8 +20,8 @@ upload_dir = 'static/input/uploads'
 allowed_extensions = {'csv', 'xlsx', 'tsv', 'ods'}
 
 # TEMP: PRELOAD GRAPH/NXGRAPH OBJECTS CONSTRUCTION -> SAVE TO PICKLE:
-Graph(filepath=input_dir + "chinese.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
-Graph(filepath=input_dir + "indian.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
+#Graph(filepath=input_dir + "chinese.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
+#Graph(filepath=input_dir + "indian.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
 
 # FLASK APP:
 app = Flask(__name__)

@@ -3,7 +3,7 @@ import os
 from markupsafe import escape
 
 # FLASK IMPORTS:
-from flask import Flask, Blueprint, render_template, request  # FLASK
+from flask import Flask, Blueprint, render_template, request, Response  # FLASK
 from flask_restx import Namespace, Resource  # REST-X API
 
 # SERVICES=
@@ -16,6 +16,9 @@ nxgraph_ns = Namespace('nxgraph', description='NXGraph', path='/api/nxgraph')
 # BLUEPRINT:
 nxgraph_bp = Blueprint('nxgraph_bp', __name__)
 
+# PATHS=
+input_dir = "static/input/"
+output_dir = "static/output/"
 
 # API ROUTES:
 @nxgraph_ns.route('/')
@@ -49,6 +52,19 @@ class NXGraphNodeNS(Resource):
 
 
 # BLUEPRINT ROUTES:
+@nxgraph_bp.route('/pickle/<string:railway>/')
+def pickle(railway):
+    return render_template("dataset/pickle_load.html")
+
+
+@nxgraph_bp.route('/progress/<string:railway>/')
+def progress(railway):
+    def build_pickle():
+        yield "data:10\n\n"
+        Graph(filepath=input_dir + railway + ".csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
+        yield "data:100\n\n"
+    return Response(build_pickle(), mimetype='text/event-stream')
+
 @nxgraph_bp.route('/default/<string:railway>/', methods=['GET', 'POST'])
 def default(railway):
     if os.path.isfile("static/output/" + railway + ".pickle"):
