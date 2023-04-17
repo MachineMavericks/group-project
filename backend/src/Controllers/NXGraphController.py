@@ -54,7 +54,6 @@ class NXGraphNodeNS(Resource):
 # BLUEPRINT ROUTES:
 @nxgraph_bp.route('/pickle/<string:railway>/')
 def pickle(railway):
-    print(railway)
     if railway != "indian" and railway != "chinese":
         return render_template("/error/customdataset_error.html")
     else:
@@ -94,7 +93,7 @@ def heatmap(railway):
 def resilience(railway):
     if os.path.isfile("static/output/" + railway + ".pickle"):
         plotly_resilience(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
-                          strategy=request.args.get('type'),
+                          strategy=request.args.get('strategy'),
                           component=request.args.get('component'), metric=request.args.get('metric'),
                           day=request.args.get('day'), fraction=request.args.get('fraction'))
         return render_template("resilience_plotly.html")

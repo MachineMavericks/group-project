@@ -90,6 +90,16 @@ def df_from_nxgraph(nxgraph, component="node"):
         raise Exception("Component not recognized.")
     return df
 
+def empty_map(pickle_path, title, output_path):
+    fig = px.scatter_mapbox(
+        center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
+        zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
+        mapbox_style="open-street-map", height=800)
+    fig_update_layout(fig)
+    fig.update_layout(title_text=title)
+    # WRITE HTML FILE:
+    if output_path is not None:
+        fig.write_html(output_path)
 
 def largest_connected_component_ratio(original_graph, attacked_graph):
     og_cc, cc = nx.connected_components(original_graph), nx.connected_components(attacked_graph)
@@ -181,9 +191,9 @@ def plotly_default(pickle_path, day=None, output_path=None):
 
 # PLOTLY HEATMAP:
 def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_path=None):
-    # DEFAULT:
-    component = "node" if component is None else component
-    metric = "total_minutes" if metric is None else metric
+    if component is None:
+        empty_map(pickle_path, "Heatmap", output_path)
+        return 0
     # NXGRAPH:
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
@@ -329,8 +339,11 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
 
 
 # PLOTLY RESILIENCE: TODO: add edges (red/white) + add sub functions for duplicated code
-def plotly_resilience(pickle_path, day=None, strategy="targetted", component="node", metric="degree_centrality",
-                      fraction="0.01", output_path=None):
+def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metric=None,
+                      fraction=None, output_path=None):
+    if component is None:
+        empty_map(pickle_path, "Resilience", output_path)
+        return 0
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
     # DEFAULT:
@@ -493,11 +506,11 @@ def show_cluster_info(nx_graph, clusters, fig, weight, adv_legend):
 
 # service
 def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weight='mileage', output_path=None, adv_legend=False):
+    if algorithm is None:
+        empty_map(pickle_path, "Clustering", output_path)
+        return 0
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
-    # DEFAULT:
-    algorithm = "Euclidian k-mean" if algorithm is None else algorithm
-    weight = 'mileage' if weight is None else weight
     communities = {}
     if algorithm == "Euclidian k-mean":
         pos = {node: (nxgraph.nodes[node]['lon'], nxgraph.nodes[node]['lat']) for node in nxgraph.nodes}
