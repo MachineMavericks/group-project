@@ -14,7 +14,7 @@ class NXGraph(nx.MultiGraph):
             elif graph is not None:
                 print("Constructing the NXGraph using the Graph object...")
             # DATASET N°1 = RAILWAY.CSV
-            if dataset_number == 1:
+            if dataset_number == 1 or dataset_number == 2:
                 regarded_days = [day_ for day_ in [1, 2, 3, 4] if day % day_ == 0] if day is not None else [1, 2, 3, 4]
                 regarded_nodes = []
                 for list_of_edges in graph.get_edges().values():
@@ -57,9 +57,8 @@ class NXGraph(nx.MultiGraph):
                             total_minutes=total_minutes,
                             working_days=list(set([int(passage.get_day()) for passage in node.get_passages()]))
                         )
-            elif dataset_number == 2:
-                # TODO: IMPLEMENT THIS.
-                pass
+            else:
+                raise NotImplementedError("The NXGraph constructor for dataset type n°{} is not implemented.".format(dataset_number))
             if save_gml and output_path is not None:
                 nx.write_gml(self, output_path, stringizer=str)
             print("NXGraph constructed in {} seconds.".format(round(time.time() - start, 2)))
