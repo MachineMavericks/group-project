@@ -46,7 +46,7 @@ def empty_map(pickle_path, title, output_path):
     fig = px.scatter_mapbox(
         center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
         zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
-        mapbox_style="open-street-map", height=800)
+        mapbox_style="open-street-map", height=740)
     fig_update_layout(fig)
     fig.update_layout(title_text=title)
     # WRITE HTML FILE:
@@ -198,7 +198,7 @@ def plotly_default(pickle_path, day=None, output_path=None):
     fig = px.scatter_mapbox(df_nodes[df_nodes["Node ID"] == -1], lat="Latitude", lon="Longitude", hover_name="Node ID",
                             hover_data=["Total passages", "Total minutes"],
                             zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
-                            mapbox_style="open-street-map", height=800,
+                            mapbox_style="open-street-map", height=740,
                             center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80))
                             #(lat=36, lon=117)
     # EDGES: Add edges as disconnected lines in a single trace
@@ -300,7 +300,7 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
         fig = px.density_mapbox(df, lat='Latitude', lon='Longitude', z=metric_name, radius=10,
                                 center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
                                 zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
-                                mapbox_style="open-street-map", height=800,
+                                mapbox_style="open-street-map", height=740,
                                 range_color=[vmin, vmax], hover_name='Node ID',
                                 hover_data=['Latitude', 'Longitude', metric_name])
     elif component == "edge":
@@ -331,7 +331,7 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
                                 hover_data=["Total passages", "Total minutes"],
                                 zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
                                 mapbox_style="open-street-map",
-                                height=800,
+                                height=740,
                                 center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80))
         # PLOTTING SETTINGS:
         min_metric = min([edge[2][metric] for edge in nxgraph.edges(data=True)])
@@ -456,7 +456,7 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
     fig = px.scatter_mapbox(init_df[init_df["Node ID"] == -1], lat='Latitude', lon='Longitude',
                             center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
                             zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
-                            mapbox_style="open-street-map", height=800)
+                            mapbox_style="open-street-map", height=740)
     fig.add_scattermapbox(lat=init_df['Latitude'], lon=init_df['Longitude'], mode='markers',
                           marker=dict(size=3, color='blue'),
                           name="Nodes", hoverinfo="text",
@@ -530,7 +530,7 @@ def plotly_clustering(pickle_path, day=None, algorithm=None, weight=None, output
     fig = px.scatter_mapbox(df[df["Node ID"] == -1], lat='Latitude', lon='Longitude',
                             center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
                             zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
-                            mapbox_style="open-street-map", height=800)
+                            mapbox_style="open-street-map", height=740)
 
     show_cluster_info(nxgraph, communities, fig, weight, adv_legend=adv_legend)
     # GLOBAL SETTINGS:
