@@ -18,10 +18,6 @@ os.mkdir(output_dir) and print("Can't find output directory. Creating one now.")
 upload_dir = 'static/input/uploads'
 allowed_extensions = {'csv', 'xlsx', 'tsv', 'ods'}
 
-# TEMP: PRELOAD GRAPH/NXGRAPH OBJECTS CONSTRUCTION -> SAVE TO PICKLE:
-Graph(filepath=input_dir + "chinese.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
-Graph(filepath=input_dir + "indian.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
-
 # FLASK APP:
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = upload_dir

@@ -24,18 +24,6 @@ import warnings
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
-def set_custom_error(my_error):
-    file = open("static/output/plotly.html", "w")
-    file.write('<div class="row">'
-                '<div class="col"></div><div class="col"><br>'
-                '<h3 class="text-lg-center" style="color:red">ERROR :(</h3>'
-                '<div class="card bg-gradient-danger"><br>'
-                '<i class="material-icons-round m-2 align-self-center" style="color:black; font-size: xxx-large">'
-                'warning</i><br>'
-                '<p class="text-bold align-self-center text-lg-center" id="err" style="color:black">'+ my_error + '</p>'
-                '<br></div></div><div class="col"></div></div><br><br>')
-    file.close()
-
 
 # COMMON DATA/SETTINGS FUNCTIONS:
 def fig_update_layout(fig):
@@ -53,6 +41,29 @@ def fig_update_layout(fig):
     fig.update_layout(title_font_color="white",
                       title_font_size=20,
                       title_x=0.5)
+
+def empty_map(pickle_path, title, output_path):
+    fig = px.scatter_mapbox(
+        center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
+        zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
+        mapbox_style="open-street-map", height=800)
+    fig_update_layout(fig)
+    fig.update_layout(title_text=title)
+    # WRITE HTML FILE:
+    if output_path is not None:
+        fig.write_html(output_path)
+
+def custom_error(my_error):
+    file = open("static/output/plotly.html", "w")
+    file.write('<div class="row">'
+                '<div class="col"></div><div class="col"><br>'
+                '<h3 class="text-lg-center" style="color:red">ERROR :(</h3>'
+                '<div class="card bg-gradient-danger"><br>'
+                '<i class="material-icons-round m-2 align-self-center" style="color:black; font-size: xxx-large">'
+                'warning</i><br>'
+                '<p class="text-bold align-self-center text-lg-center" id="err" style="color:black">'+ my_error + '</p>'
+                '<br></div></div><div class="col"></div></div><br><br>')
+    file.close()
 
 
 # HELPER FUNCTIONS:
@@ -90,23 +101,11 @@ def df_from_nxgraph(nxgraph, component="node"):
         raise Exception("Component not recognized.")
     return df
 
-def empty_map(pickle_path, title, output_path):
-    fig = px.scatter_mapbox(
-        center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
-        zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
-        mapbox_style="open-street-map", height=800)
-    fig_update_layout(fig)
-    fig.update_layout(title_text=title)
-    # WRITE HTML FILE:
-    if output_path is not None:
-        fig.write_html(output_path)
-
 def largest_connected_component_ratio(original_graph, attacked_graph):
     og_cc, cc = nx.connected_components(original_graph), nx.connected_components(attacked_graph)
     og_lcc, lcc = max(og_cc, key=len), max(cc, key=len)
 
     return len(lcc) / len(og_lcc)
-
 
 def global_efficiency_weighted(graph, weight='mileage'):
     n = len(graph)
@@ -119,9 +118,72 @@ def global_efficiency_weighted(graph, weight='mileage'):
         g_eff = 0
     return g_eff
 
-
 def global_efficiency_ratio(original_graph, attacked_graph):
     return global_efficiency_weighted(attacked_graph) / global_efficiency_weighted(original_graph)
+
+def show_cluster_info(nx_graph, clusters, fig, weight, adv_legend):
+    # TODO: add load centrality and average mileage/euclidian distance + highest and lowest metric values
+    avg_degrees, avg_bet, avg_load = {}, {}, {}
+    avg_deg, avg_between, avg_ld = 0, 0, 0
+
+    if adv_legend:
+        degree = nx.degree_centrality(nx_graph)
+        between = nx.betweenness_centrality(nx_graph, weight=weight)
+        load = nx.load_centrality(nx_graph, weight=weight)
+    i = 0
+    for cluster in clusters:
+        i += 1
+        if adv_legend:
+            for node in cluster:
+                avg_deg += degree[node]
+                avg_between += between[node]
+                avg_ld += load[node]
+
+            avg_deg /= len(cluster)
+            avg_between /= len(cluster)
+            avg_ld /= len(cluster)
+
+            avg_degrees[i] = avg_deg
+            avg_bet[i] = avg_between
+            avg_load[i] = avg_ld
+
+        # Create a scatter trace for the cluster
+        cluster_lat = [np.round(nx_graph.nodes[node]['lat'], 2) for node in cluster]
+        cluster_lon = [np.round(nx_graph.nodes[node]['lon'], 2) for node in cluster]
+        cluster_text = [f'Node n°{node}<br>Cluster n°{i}<br>' for node in cluster]
+
+        fig.add_trace(
+            go.Scattermapbox(
+                lat=cluster_lat,
+                lon=cluster_lon,
+                mode='markers',
+                marker=dict(size=5, color=i),
+                name=(f'Cluster {i}<br>'
+                      f'<span style="font-size: 10px;">'
+                      f'Betweenness centrality: {avg_bet[i]:.4f}<br>'
+                      f'Degree centrality: {avg_degrees[i]:.4f}<br>'
+                      f'Load centrality: {avg_load[i]:.4f}'
+                      f'</span>') if adv_legend else (
+                    f'Cluster {i}<br>'
+                    f'<span style="font-size: 10px;">'
+                    f'</span>'),
+                hoverinfo='text',
+                hovertext=cluster_text
+            )
+        )
+
+    # Create custom legend with metrics for each cluster
+    legend_items = []
+    for i in range(1, len(clusters) + 1):
+        legend_title = f'Cluster {i}'
+        metrics_text = f'Cluster {i}<br>' \
+                       f'Average degree centrality: {avg_degrees[i]:.6f}<br>' \
+                       f'Average betweenness centrality: {avg_bet[i]:.6f}<br>' if adv_legend else f'Cluster {i}<br>'
+
+        legend_items.append(dict(label=metrics_text, method='update', args=[
+            {'title': metrics_text, 'showlegend': True, 'legend_title': legend_title,
+             'legend': {'orientation': 'h', 'yanchor': 'bottom', 'y': -0.25, 'xanchor': 'left', 'x': 0}}
+        ]))
 
 
 # DEFAULT PLOTTING OF NODES:
@@ -188,17 +250,14 @@ def plotly_default(pickle_path, day=None, output_path=None):
         fig.write_html(output_path)
     return fig
 
-
 # PLOTLY HEATMAP:
 def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_path=None):
     if component is None:
-        empty_map(pickle_path, "Heatmap", output_path)
-        return 0
+        return empty_map(pickle_path, "Heatmap", output_path)
     # NXGRAPH:
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
     # SETTINGS:
-    metric_name = ""
     var_factor = 3
     # SPECIFIC:
     if component == "node":
@@ -222,8 +281,7 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
             closeness_centrality = nx.closeness_centrality(nxgraph)
             nx.set_node_attributes(nxgraph, closeness_centrality, 'closeness_centrality')
         else:
-            set_custom_error("Metric not implemented!")
-            return 1
+            return custom_error("Metric not implemented!")
         # PLOTTING SETTINGS:
         min_metric = min([node[1][metric] for node in nxgraph.nodes(data=True)])
         max_metric = max([node[1][metric] for node in nxgraph.nodes(data=True)])
@@ -256,19 +314,16 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
         elif metric == "total_mileage":
             metric_name = "Total mileage"
         elif metric == "degree_centrality":
-            set_custom_error("Degree centrality not implemented for edges!")
-            return
+            return custom_error("Degree centrality not implemented for edges!")
         elif metric == "betweenness_centrality":
             metric_name = "Betweenness centrality"
             print("Gathering betweenness centralities...")
             betweenness_centrality = nx.edge_betweenness_centrality(nxgraph)
             nx.set_edge_attributes(nxgraph, betweenness_centrality, 'betweenness_centrality')
         elif metric == "closeness_centrality":
-            set_custom_error("Closeness centrality not implemented for edges!")
-            return 1
+            return custom_error("Closeness centrality not implemented for edges!")
         else:
-            set_custom_error("Metric not implemented")
-            return 1
+            return custom_error("Metric not implemented")
         # DUMMY PLOT:
         df_nodes = df_from_nxgraph(nxgraph, component="node")
         fig = px.scatter_mapbox(df_nodes[df_nodes["Node ID"] == -1], lat="Latitude", lon="Longitude",
@@ -337,26 +392,21 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
         fig.write_html(output_path)
     return fig
 
-
 # PLOTLY RESILIENCE: TODO: add edges (red/white) + add sub functions for duplicated code
-def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metric=None,
-                      fraction=None, output_path=None):
+def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metric=None, fraction=None, output_path=None):
     if component is None:
-        empty_map(pickle_path, "Resilience", output_path)
-        return 0
+        return empty_map(pickle_path, "Resilience", output_path)
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
-    # DEFAULT:
-    strategy = "targetted" if strategy is None else strategy
-    component = "node" if component is None else component
-    metric = "degree_centrality" if metric is None else metric
-    fraction = "0.01" if fraction is None or fraction is "" else fraction
-    fraction = float(fraction)
-    if strategy == "targetted":
+    # FRACTION VERIFICATION:
+    if fraction is None or fraction == "":
+        return custom_error("Fraction not specified!")
+    else:
+        fraction = float(fraction)
+    if strategy == "targeted":
         if component == "node":
             nx_graph_copy = nxgraph.copy()
             nodes_to_remove = int(len(nx_graph_copy) * fraction)
-
             metric_dict = {}
             if metric == 'degree_centrality':
                 metric_dict = nx.degree_centrality(nx_graph_copy)
@@ -377,15 +427,13 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
             print("Largest connected component ratio: ", lcc)
             print("Global efficiency ratio: ", global_eff)
         elif component == "edge":
-            set_custom_error("Targetted edge resilience not implemented yet...")
-            return 1
+            return custom_error("Targetted edge resilience not implemented yet...")
     elif strategy == "random":
         if component == "node":
-            set_custom_error("Random node resilience not implemented yet...")
-            return 1
+            return custom_error("Random node resilience not implemented yet...")
         elif component == "edge":
-            set_custom_error("Random edge resilience not implemented yet...")
-            return 1
+            return custom_error("Random edge resilience not implemented yet...")
+
     # PLOT:
     init_nodes = []
     for node in nxgraph.nodes(data=True):
@@ -433,82 +481,10 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
         fig.write_html(output_path)
     return fig
 
-
 # PLOTLY CLUSTERING:
-
-# helper functions
-
-
-def show_cluster_info(nx_graph, clusters, fig, weight, adv_legend):
-    # TODO: add load centrality and average mileage/euclidian distance + highest and lowest metric values
-    avg_degrees, avg_bet, avg_load = {}, {}, {}
-    avg_deg, avg_between, avg_ld = 0, 0, 0
-
-    if adv_legend:
-        degree = nx.degree_centrality(nx_graph)
-        between = nx.betweenness_centrality(nx_graph, weight=weight)
-        load = nx.load_centrality(nx_graph, weight=weight)
-    i = 0
-    for cluster in clusters:
-        i += 1
-        if adv_legend:
-            for node in cluster:
-                avg_deg += degree[node]
-                avg_between += between[node]
-                avg_ld += load[node]
-
-            avg_deg /= len(cluster)
-            avg_between /= len(cluster)
-            avg_ld /= len(cluster)
-
-            avg_degrees[i] = avg_deg
-            avg_bet[i] = avg_between
-            avg_load[i] = avg_ld
-
-        # Create a scatter trace for the cluster
-        cluster_lat = [np.round(nx_graph.nodes[node]['lat'], 2) for node in cluster]
-        cluster_lon = [np.round(nx_graph.nodes[node]['lon'], 2) for node in cluster]
-        cluster_text = [f'Node n°{node}<br>Cluster n°{i}<br>' for node in cluster]
-
-        fig.add_trace(
-            go.Scattermapbox(
-                lat=cluster_lat,
-                lon=cluster_lon,
-                mode='markers',
-                marker=dict(size=5, color=i),
-                name=(f'Cluster {i}<br>'
-                      f'<span style="font-size: 10px;">'
-                      f'Betweenness centrality: {avg_bet[i]:.4f}<br>'
-                      f'Degree centrality: {avg_degrees[i]:.4f}<br>'
-                      f'Load centrality: {avg_load[i]:.4f}'
-                      f'</span>') if adv_legend else (
-                    f'Cluster {i}<br>'
-                    f'<span style="font-size: 10px;">'
-                    f'</span>'),
-                hoverinfo='text',
-                hovertext=cluster_text
-            )
-        )
-
-    # Create custom legend with metrics for each cluster
-    legend_items = []
-    for i in range(1, len(clusters) + 1):
-        legend_title = f'Cluster {i}'
-        metrics_text = f'Cluster {i}<br>' \
-                       f'Average degree centrality: {avg_degrees[i]:.6f}<br>' \
-                       f'Average betweenness centrality: {avg_bet[i]:.6f}<br>' if adv_legend else f'Cluster {i}<br>'
-
-        legend_items.append(dict(label=metrics_text, method='update', args=[
-            {'title': metrics_text, 'showlegend': True, 'legend_title': legend_title,
-             'legend': {'orientation': 'h', 'yanchor': 'bottom', 'y': -0.25, 'xanchor': 'left', 'x': 0}}
-        ]))
-
-
-# service
-def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weight='mileage', output_path=None, adv_legend=False):
+def plotly_clustering(pickle_path, day=None, algorithm=None, weight=None, output_path=None, adv_legend=False):
     if algorithm is None:
-        empty_map(pickle_path, "Clustering", output_path)
-        return 0
+        return empty_map(pickle_path, "Clustering", output_path)
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
     communities = {}
@@ -569,8 +545,6 @@ def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weigh
     if output_path is not None:
         fig.write_html(output_path)
     return fig
-
-
 
 # PLOTLY SMALL WORLD:
 def plotly_small_world(pickle_path, day=None, output_path=None):
