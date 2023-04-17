@@ -3,7 +3,6 @@ import os  # OS
 # FLASK IMPORTS:
 from flask import Flask, render_template, request, flash  # FLASK
 from werkzeug.utils import secure_filename
-from flask_restx import Api  # REST-X API
 # MODELS=
 from src.Models.Graph import Graph  # GRAPH
 from src.Models.NXGraph import NXGraph  # NXGRAPH
@@ -20,30 +19,19 @@ upload_dir = 'static/input/uploads'
 allowed_extensions = {'csv', 'xlsx', 'tsv', 'ods'}
 
 # TEMP: PRELOAD GRAPH/NXGRAPH OBJECTS CONSTRUCTION -> SAVE TO PICKLE:
-#Graph(filepath=input_dir + "chinese.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
-#Graph(filepath=input_dir + "indian.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
+Graph(filepath=input_dir + "chinese.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
+Graph(filepath=input_dir + "indian.csv", output_dir=output_dir, save_csvs=True, save_pickle=True)
 
 # FLASK APP:
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = upload_dir
-# BLUEPRINTS:
-app.register_blueprint(nxgraph_bp)
 
-# REST-X API DOC/HANDLER:
-api = Api(app,
-          version='1.0',
-          title='Machine Mavericks ™ - API Documentation',
-          description='Official API Documentation for the Machine Mavericks Project.\n\nMade using RestX (Swagger) for Flask.\n\nCourtesy of: Hans Haller.',
-          doc='/swagger',
-          base_url='/api',
-          )
-# ADD NAMESPACES TO API DOC:
-api.add_namespace(graph_ns)
-api.add_namespace(nxgraph_ns)
+# BLUEPRINTS/CONTROLLERS:
+app.register_blueprint(nxgraph_bp)
 
 
 # INDEX ROUTE:
-@app.route('/index', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     return render_template("base.html")
 
@@ -75,8 +63,6 @@ def choose_dataset():
 def main():
     # START THE APP:
     app.run(debug=True)
-    # START THE SWAGGER DOC:
-    api.init_app(app)
 
 
 if __name__ == '__main__':
