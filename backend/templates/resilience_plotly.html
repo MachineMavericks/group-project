@@ -3,8 +3,10 @@
 {% block filters %}
 <form class="row">
     <div class="col">
-        <input type="number" name="day" id="day" class="col form-control btn-outline-white bg-gray-800 mt-3 text-white" placeholder="Day"
-               onfocus="focused(this)" onfocusout="defocused(this)">
+        <div class="input-group input-group-outline my-3">
+            <label class="form-label">Day</label>
+            <input type="number" name="day" class="form-control text-white">
+        </div>
     </div>
     <div class="col">
         <select class="form-select btn-outline-light bg-gray-800 mt-3 ps-2" name="strategy" id="strategy">
@@ -25,8 +27,10 @@
         </select>
     </div>
     <div class="col">
-        <input type="number" name="fraction" id="fraction" class="col form-control btn-outline-white bg-gray-800 mt-3 text-white" placeholder="Fraction"
-               onfocus="focused(this)" onfocusout="defocused(this)">
+        <div class="input-group input-group-outline my-3">
+            <label class="form-label">Fraction (i.e. 0.01)</label>
+            <input type="number" name="fraction" class="form-control text-white">
+        </div>
     </div>
     <div class="col">
         <button class="btn btn-outline-light mt-3 text-bold" type="submit">Compute</button>
