@@ -54,8 +54,11 @@ class NXGraphNodeNS(Resource):
 # BLUEPRINT ROUTES:
 @nxgraph_bp.route('/pickle/<string:railway>/')
 def pickle(railway):
-    #if railway != "indian" or "chinese": return render_template("/error/customdataset_error.html")
-    return render_template("dataset/pickle_load.html")
+    print(railway)
+    if railway != "indian" and railway != "chinese":
+        return render_template("/error/customdataset_error.html")
+    else:
+        return render_template("dataset/pickle_load.html")
 
 
 @nxgraph_bp.route('/progress/<string:railway>/')
