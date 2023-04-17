@@ -124,8 +124,11 @@ def plotly_default(pickle_path, day=None, output_path=None):
     df_edges = df_from_nxgraph(nxgraph, component="edge")
     # CREATE NEW FIGURE:
     fig = px.scatter_mapbox(df_nodes[df_nodes["Node ID"] == -1], lat="Latitude", lon="Longitude", hover_name="Node ID",
-                            hover_data=["Total passages", "Total minutes"], zoom=3.5, mapbox_style="open-street-map",
-                            height=800, center=dict(lat=36, lon=117))
+                            hover_data=["Total passages", "Total minutes"],
+                            zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
+                            mapbox_style="open-street-map", height=800,
+                            center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80))
+                            #(lat=36, lon=117)
     # EDGES: Add edges as disconnected lines in a single trace
     edges_x = []
     edges_y = []
@@ -227,7 +230,9 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
             data.append([id, lat, lon, met])
         df = pd.DataFrame(data, columns=['Node ID', 'Latitude', 'Longitude', metric_name])
         fig = px.density_mapbox(df, lat='Latitude', lon='Longitude', z=metric_name, radius=10,
-                                center=dict(lat=36, lon=117), zoom=3.5, mapbox_style="open-street-map", height=800,
+                                center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
+                                zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
+                                mapbox_style="open-street-map", height=800,
                                 range_color=[vmin, vmax], hover_name='Node ID',
                                 hover_data=['Latitude', 'Longitude', metric_name])
     elif component == "edge":
@@ -258,9 +263,11 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
         df_nodes = df_from_nxgraph(nxgraph, component="node")
         fig = px.scatter_mapbox(df_nodes[df_nodes["Node ID"] == -1], lat="Latitude", lon="Longitude",
                                 hover_name="Node ID",
-                                hover_data=["Total passages", "Total minutes"], zoom=3.5,
+                                hover_data=["Total passages", "Total minutes"],
+                                zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
                                 mapbox_style="open-street-map",
-                                height=800, center=dict(lat=36, lon=117))
+                                height=800,
+                                center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80))
         # PLOTTING SETTINGS:
         min_metric = min([edge[2][metric] for edge in nxgraph.edges(data=True)])
         max_metric = max([edge[2][metric] for edge in nxgraph.edges(data=True)])
@@ -386,7 +393,9 @@ def plotly_resilience(pickle_path, day=None, strategy="targetted", component="no
     init_df = pd.DataFrame(init_nodes, columns=['Node ID', 'Latitude', 'Longitude', metric])
     destroyed_df = pd.DataFrame(destroyed_nodes, columns=['Node ID', 'Latitude', 'Longitude', metric])
     fig = px.scatter_mapbox(init_df[init_df["Node ID"] == -1], lat='Latitude', lon='Longitude',
-                            center=dict(lat=36, lon=117), zoom=3.5, mapbox_style="open-street-map", height=800)
+                            center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
+                            zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
+                            mapbox_style="open-street-map", height=800)
     fig.add_scattermapbox(lat=init_df['Latitude'], lon=init_df['Longitude'], mode='markers',
                           marker=dict(size=3, color='blue'),
                           name="Nodes", hoverinfo="text",
@@ -530,7 +539,8 @@ def plotly_clustering(pickle_path, day=None, algorithm='Euclidian k-mean', weigh
 
     # Create the plot using scatter_mapbox
     fig = px.scatter_mapbox(df[df["Node ID"] == -1], lat='Latitude', lon='Longitude',
-                            center=dict(lat=36, lon=117), zoom=3.5,
+                            center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
+                            zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
                             mapbox_style="open-street-map", height=800)
 
     show_cluster_info(nxgraph, communities, fig, weight, adv_legend=adv_legend)
