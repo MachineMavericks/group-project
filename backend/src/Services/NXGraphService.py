@@ -22,7 +22,7 @@ from src.Models.Graph import Graph
 import warnings
 
 warnings.filterwarnings("ignore")
-
+warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 def set_custom_error(my_error):
     file = open("static/output/plotly.html", "w")
@@ -415,7 +415,7 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
                           hovertext="Node n°" + init_df['Node ID'].astype(str) + "<br>" + metric + ": " + init_df[
                               metric].astype(str))
     fig.add_scattermapbox(lat=destroyed_df['Latitude'], lon=destroyed_df['Longitude'], mode='markers',
-                          marker=dict(size=6, color='red'),
+                          marker=dict(size=12, color='red'),
                           name="Destroyed nodes", hoverinfo="text",
                           hovertext="Node n°" + destroyed_df['Node ID'].astype(str) + "<br>" + metric + ": " +
                                     destroyed_df[metric].astype(str))
