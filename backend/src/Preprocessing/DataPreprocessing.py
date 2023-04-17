@@ -158,6 +158,10 @@ def chinese_railway_preprocessing_pipeline(df, save_csv=False, output_path=None)
     # 7. REPLACE DAY N by THE N VALUE ONLY:
     df = replace_day_values(df)
 
+    # Convert st_id to string:
+    df = df.astype({'st_id': str})
+    df = df.reset_index(drop=True)
+
     # X. DEDUCE MILEAGES USING TRAINS SPEED METADATA:
     # df = deduce_mileage_using_speed_and_travel_times(df)  # TODO: This is not working properly. Discuss with teachers.
 
@@ -269,6 +273,10 @@ def indian_railway_preprocessing_pipeline(df, save_csv=False, output_path=None):
                           * math.sin((math.radians(row['lon']) - math.radians(df.iloc[index - 1]['lon']))/2)**2)
             ) + train_mileage_so_far
             train_mileage_so_far = df.iloc[index]['mileage']
+    df = df.reset_index(drop=True)
+
+    # Convert st_id to string:
+    df = df.astype({'st_id': str})
     df = df.reset_index(drop=True)
 
     # Save the result to 'schedules_with_station_names.csv' file:
