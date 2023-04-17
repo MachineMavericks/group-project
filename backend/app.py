@@ -1,5 +1,6 @@
 # DEFAULT IMPORTS:
 import os  # OS
+import shutil  # SHUTIL
 # FLASK IMPORTS:
 from flask import Flask, render_template, request, flash  # FLASK
 from werkzeug.utils import secure_filename
@@ -53,6 +54,12 @@ def choose_dataset():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             return render_template("dataset/upload_done.html")
     return render_template("dataset/dataset_selection.html")
+
+@app.route('/clear-cache', methods=['GET', 'POST'])
+def clear_cache():
+    shutil.rmtree(output_dir)
+    os.mkdir(output_dir)
+    return render_template("base.html")
 
 
 # MAIN:
