@@ -138,8 +138,8 @@
                     <span class="sidenav-normal  ms-2  ps-1"> Load Dataset </span>
                 </a>
             </li>
-            <li class="nav-item ">
-                <a class="nav-link text-white " href="/clear-cache">
+            <li class="nav-item " data-bs-toggle="modal" data-bs-target="#confirmModal">
+                <a class="nav-link text-white">
                     <i class="material-icons-round me-2">delete</i>
                     <span class="sidenav-normal  ms-2  ps-1"> Clear Cache </span>
                 </a>
@@ -147,23 +147,37 @@
         </ul>
     </div>
 </aside>
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content bg-gray-800">
+            <div class="modal-header">
+                <p class="text-white text-lg" id="confirmModalLabel">Are you certain you want to delete cache?</p>
+                <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-footer">
+                <a type="button" class="btn bg-danger text-white" href="/clear-cache">Confirm</a>
+                <button type="button" class="btn bg-gray-900 me-2 text-white" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 <main class="main-content ps ps--active-y">
     <div class="container-fluid py-4">
         <div class="row mt-2">
             {% block graph %}
-<!--            <div class="col">-->
-<!--                <p class="text-white">-->
-<!--                    <br><br><br>-->
-<!--                    Welcome to this Data Analysis Toolbox. <br>-->
-<!--                    Use the left scrollbar to select the data you want to show. <br>-->
-<!--                    Have fun.-->
-<!--                </p>-->
-<!--            </div>-->
-<!--            <div class="col">-->
-<!--                <br><br><br><br><br><br><br>-->
-<!--                <img src="{{ url_for('static', filename='logo_machine_maverick.png') }}" alt="logo">-->
-<!--            </div>-->
-<!--            <div class="col"></div>-->
+            <!--            <div class="col">-->
+            <!--                <p class="text-white">-->
+            <!--                    <br><br><br>-->
+            <!--                    Welcome to this Data Analysis Toolbox. <br>-->
+            <!--                    Use the left scrollbar to select the data you want to show. <br>-->
+            <!--                    Have fun.-->
+            <!--                </p>-->
+            <!--            </div>-->
+            <!--            <div class="col">-->
+            <!--                <br><br><br><br><br><br><br>-->
+            <!--                <img src="{{ url_for('static', filename='logo_machine_maverick.png') }}" alt="logo">-->
+            <!--            </div>-->
+            <!--            <div class="col"></div>-->
             {% endblock %}
             {% block textform %}
             {% endblock %}
