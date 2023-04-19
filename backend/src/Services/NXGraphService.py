@@ -1,11 +1,17 @@
 # IMPORTS=
+import heapq
+import math
+import pickle
 import random
+from collections import OrderedDict
+from datetime import datetime, date, timedelta
 
 import networkx as nx
 from itertools import permutations
 import networkx.algorithms.community as nx_comm
 import plotly.express as px
 import plotly.graph_objects as go
+from matplotlib import cm, colors
 from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
@@ -42,6 +48,7 @@ def fig_update_layout(fig):
                       title_font_size=20,
                       title_x=0.5)
 
+
 def empty_map(pickle_path, title, output_path):
     fig = px.scatter_mapbox(
         center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
@@ -53,16 +60,17 @@ def empty_map(pickle_path, title, output_path):
     if output_path is not None:
         fig.write_html(output_path)
 
+
 def custom_error(my_error):
     file = open("static/output/plotly.html", "w")
     file.write('<div class="row">'
-                '<div class="col"></div><div class="col"><br>'
-                '<h3 class="text-lg-center" style="color:red">ERROR :(</h3>'
-                '<div class="card bg-gradient-danger"><br>'
-                '<i class="material-icons-round m-2 align-self-center" style="color:black; font-size: xxx-large">'
-                'warning</i><br>'
-                '<p class="text-bold align-self-center text-lg-center" id="err" style="color:black">'+ my_error + '</p>'
-                '<br></div></div><div class="col"></div></div><br><br>')
+               '<div class="col"></div><div class="col"><br>'
+               '<h3 class="text-lg-center" style="color:red">ERROR :(</h3>'
+               '<div class="card bg-gradient-danger"><br>'
+               '<i class="material-icons-round m-2 align-self-center" style="color:black; font-size: xxx-large">'
+               'warning</i><br>'
+               '<p class="text-bold align-self-center text-lg-center" id="err" style="color:black">' + my_error + '</p>'
+                                                                                                                  '<br></div></div><div class="col"></div></div><br><br>')
     file.close()
 
 
@@ -101,11 +109,13 @@ def df_from_nxgraph(nxgraph, component="node"):
         raise Exception("Component not recognized.")
     return df
 
+
 def largest_connected_component_ratio(original_graph, attacked_graph):
     og_cc, cc = nx.connected_components(original_graph), nx.connected_components(attacked_graph)
     og_lcc, lcc = max(og_cc, key=len), max(cc, key=len)
 
     return len(lcc) / len(og_lcc)
+
 
 def global_efficiency_weighted(graph, weight='mileage'):
     n = len(graph)
@@ -118,8 +128,10 @@ def global_efficiency_weighted(graph, weight='mileage'):
         g_eff = 0
     return g_eff
 
+
 def global_efficiency_ratio(original_graph, attacked_graph):
     return global_efficiency_weighted(attacked_graph) / global_efficiency_weighted(original_graph)
+
 
 def show_cluster_info(nx_graph, clusters, fig, weight, adv_legend):
     # TODO: add load centrality and average mileage/euclidian distance + highest and lowest metric values
@@ -199,8 +211,9 @@ def plotly_default(pickle_path, day=None, output_path=None):
                             hover_data=["Total passages", "Total minutes"],
                             zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
                             mapbox_style="open-street-map", height=740,
-                            center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80))
-                            #(lat=36, lon=117)
+                            center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(
+                                lat=21, lon=80))
+    # (lat=36, lon=117)
     # EDGES: Add edges as disconnected lines in a single trace
     edges_x = []
     edges_y = []
@@ -250,6 +263,7 @@ def plotly_default(pickle_path, day=None, output_path=None):
         fig.write_html(output_path)
     return fig
 
+
 # PLOTLY HEATMAP:
 def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_path=None):
     if component is None:
@@ -298,7 +312,8 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
             data.append([id, lat, lon, met])
         df = pd.DataFrame(data, columns=['Node ID', 'Latitude', 'Longitude', metric_name])
         fig = px.density_mapbox(df, lat='Latitude', lon='Longitude', z=metric_name, radius=10,
-                                center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
+                                center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(
+                                    lat=21, lon=80),
                                 zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
                                 mapbox_style="open-street-map", height=740,
                                 range_color=[vmin, vmax], hover_name='Node ID',
@@ -332,7 +347,8 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
                                 zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
                                 mapbox_style="open-street-map",
                                 height=740,
-                                center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80))
+                                center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(
+                                    lat=21, lon=80))
         # PLOTTING SETTINGS:
         min_metric = min([edge[2][metric] for edge in nxgraph.edges(data=True)])
         max_metric = max([edge[2][metric] for edge in nxgraph.edges(data=True)])
@@ -392,8 +408,10 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
         fig.write_html(output_path)
     return fig
 
+
 # PLOTLY RESILIENCE: TODO: add edges (red/white) + add sub functions for duplicated code
-def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metric=None, fraction=None, output_path=None):
+def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metric=None, fraction=None,
+                      output_path=None):
     if component is None:
         return empty_map(pickle_path, "Resilience", output_path)
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
@@ -454,7 +472,8 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
     init_df = pd.DataFrame(init_nodes, columns=['Node ID', 'Latitude', 'Longitude', metric])
     destroyed_df = pd.DataFrame(destroyed_nodes, columns=['Node ID', 'Latitude', 'Longitude', metric])
     fig = px.scatter_mapbox(init_df[init_df["Node ID"] == -1], lat='Latitude', lon='Longitude',
-                            center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
+                            center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(
+                                lat=21, lon=80),
                             zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
                             mapbox_style="open-street-map", height=740)
     fig.add_scattermapbox(lat=init_df['Latitude'], lon=init_df['Longitude'], mode='markers',
@@ -480,6 +499,7 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
     if output_path is not None:
         fig.write_html(output_path)
     return fig
+
 
 # PLOTLY CLUSTERING:
 def plotly_clustering(pickle_path, day=None, algorithm=None, weight=None, output_path=None, adv_legend=False):
@@ -528,7 +548,8 @@ def plotly_clustering(pickle_path, day=None, algorithm=None, weight=None, output
 
     # Create the plot using scatter_mapbox
     fig = px.scatter_mapbox(df[df["Node ID"] == -1], lat='Latitude', lon='Longitude',
-                            center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
+                            center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(
+                                lat=21, lon=80),
                             zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
                             mapbox_style="open-street-map", height=740)
 
@@ -545,6 +566,7 @@ def plotly_clustering(pickle_path, day=None, algorithm=None, weight=None, output
     if output_path is not None:
         fig.write_html(output_path)
     return fig
+
 
 # PLOTLY SMALL WORLD:
 def plotly_small_world(pickle_path, day=None, output_path=None):
@@ -671,6 +693,336 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
         sliders=sliders
     )
 
+    # WRITE HTML FILE:
+    if output_path is not None:
+        fig.write_html(output_path)
+    return fig
+
+
+# SHORTEST PATH ANALYSIS
+
+def astar_path(graph, start, end):
+    """
+    Finds the shortest path between the start and end nodes of the given graph using the A* algorithm.
+
+    :param graph: The graph to search.
+    :param start: The starting node.
+    :param end: The ending node.
+    :return: A list of nodes representing the shortest path.
+    """
+    path = nx.astar_path(graph, start, end, heuristic=lambda u, v: heuristic_function(graph, u, v), weight='mileage')
+    return path
+
+
+def heuristic_function(nx_graph, u, v):
+    """
+    Heuristic function to estimate the distance between the current node and the target node.
+    The function return the inverse of the distance as nodes with higher distances are the worst candidates.
+
+    :param nx_graph: railway network
+    :param u: The current node.
+    :param v: The target node.
+    :return: An estimate of the distance between the two nodes.
+    """
+    if u == v:
+        return 0
+    fromLat, fromLon = nx_graph.nodes[u]['lat'], nx_graph.nodes[u]['lon']
+    destLat, destLon = nx_graph.nodes[v]['lat'], nx_graph.nodes[v]['lon']
+
+    return 1 / haversine(fromLat, fromLon, destLat, destLon)
+
+
+def haversine(lat1, lon1, lat2, lon2):
+    """
+    Calculates the distance between two points on the Earth's surface using the Haversine formula.
+
+    :param lat1: The latitude of the first point.
+    :param lon1: The longitude of the first point.
+    :param lat2: The latitude of the second point.
+    :param lon2: The longitude of the second point.
+    :return: The distance between the two points, in kilometers.
+    """
+    earth_radius = 6371  # kilometers
+    dLat = math.radians(lat2 - lat1)
+    dLon = math.radians(lon2 - lon1)
+    a = math.sin(dLat / 2) * math.sin(dLat / 2) + math.cos(math.radians(lat1)) * math.cos(
+        math.radians(lat2)) * math.sin(dLon / 2) * math.sin(dLon / 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    distance = earth_radius * c
+    return distance
+
+
+def travel_cost(graph: Graph, current_node, next_node, current_time):
+    best_cost = float('inf')
+    best_travel = 0
+    best_arrival = 0
+    # for each edge between current_node and next_node (max is 2)
+    for rail in graph.get_edges()[current_node, next_node]:
+        # for each travel on the edge
+        for travel in rail.get_travels():
+            dep_time = datetime.strptime(travel.get_dep_time(), '%H:%M:%S').time()
+
+            if dep_time < current_time:
+                dt1 = datetime.combine(date.today(), current_time)
+                dt2 = datetime.combine(date.today() + timedelta(days=1), dep_time)
+            else:
+                dt1 = datetime.combine(date.today(), current_time)
+                dt2 = datetime.combine(date.today(), dep_time)
+
+            wait = dt2 - dt1
+
+            cost = round(wait.total_seconds() / 60) + travel.get_travel_time()
+            if cost < best_cost:
+                best_cost = cost
+                best_travel = travel
+                best_arrival = dt2 + timedelta(minutes=travel.get_travel_time())
+
+    return best_cost, best_arrival.time(), best_travel.get_train_id()
+
+
+# TODO: mind that Graph does not consider day ==> id day specified nx_graph and graph will be different
+
+def a_star_shortest_path(nx_graph: NXGraph, graph: Graph, root, goal, departure_time):
+    """
+    Computes the shortest path from a station to another departing at a chosen time with A* search.
+    :param nx_graph: Railway network
+    :param graph: original graph object
+    :param root: starting node
+    :param goal: target node
+    :param departure_time: time of departure
+    :return: path and expected arrival time
+    """
+
+    # Define a priority queue setting the priority as: f(n) = g(n) + h(n), where g(n) is the
+    # cost of the path so far and h(n) is the heuristic cost to the goal node.
+    frontier = [(0, root)]
+    # path reconstruction dict
+    came_from = {}
+
+    # Define a dictionary 'record' to keep track of the cost of the best path so far for each node.
+    cost_record = {root: (0, departure_time, '_')}
+
+    times, trains = [], []
+
+    # while queue is not empty
+    while frontier:
+        # Get the node with the lowest f(n) value from the queue --> 'current_node'.
+        _, current = heapq.heappop(frontier)
+        # If goal node is found ==> return
+        if current == goal:
+            path = [current]
+            while current != root:
+                current = came_from[current]
+                path.append(current)
+                times.append(cost_record[current][1])
+                trains.append(cost_record[current][2])
+            path.reverse()
+            times.reverse()
+            trains.reverse()
+            return path, times, trains
+        # for each neighbor compute cost(root, neighbor)= record[current_node] + travel_cost(current_node, neighbor)
+        for neighbor in nx_graph.successors(current):
+            current_time = cost_record[current][1]
+            cost_to_neighbor = travel_cost(graph, current, neighbor, current_time=current_time)
+            cost = cost_record[current][0] + cost_to_neighbor[0]
+            # print(current, '-->', neighbor, '  ', current_time, '-->', cost_to_neighbor[1])
+            # if neighbor is not in 'record' the dictionary that keeps track best costs so far for each node...
+            # ... or if cost(root, neighbor) < record[neighbor]
+            if neighbor not in cost_record or cost < cost_record[neighbor][0]:
+                # Add/update the cost for neighbor in 'record'
+                cost_record[neighbor] = cost, cost_to_neighbor[1], cost_to_neighbor[2]
+                # compute priority = cost(root, current) + heuristic(neighbor, goal)
+                priority = cost + heuristic_function(nx_graph, neighbor, goal)
+                heapq.heappush(frontier, (priority, neighbor))
+                came_from[neighbor] = current
+                # Add/update train and time to tracking lists
+
+    # if we exit the while loop then goal has not been reached ==> no existing path
+    print("No existing path")
+    return None
+
+
+def plotly_shortest_path(pickle_path, dep_time=None, end=None, output_path=None, day=None, start=None):
+    nx_graph = NXGraph(pickle_path=pickle_path, dataset_number=1,
+                       day=int(day) if day is not None and day != "" else None)
+    if start is None:
+        return empty_map(pickle_path, 'Shortest Path', output_path)
+
+    # if not nx_graph.has_node(start) or not nx_graph.has_node(end):
+    #     return custom_error('Invalid Node(s)')
+
+    if dep_time is not None:
+        dep_time = datetime.strptime(dep_time + ':00', '%H:%M:%S').time()
+    start = start if start is not None else start
+    end = end if end is not None else end
+
+    graph = pickle.load(open(pickle_path, "rb"))
+
+    path1 = [] if start is None and end is None else astar_path(nx_graph, start, end)
+    path2 = [(), (), ()] if start is None and end is None else a_star_shortest_path(nx_graph, graph, start, end,
+                                                                                    dep_time)
+
+    # NODES DATAFRAME:
+    df_nodes = df_from_nxgraph(nx_graph, component="node")
+
+    # Create the empty map
+    fig = px.scatter_mapbox(df_nodes[df_nodes["Node ID"] == -1], lat="Latitude", lon="Longitude", hover_name="Node ID",
+                            hover_data=["Total passages", "Total minutes"], zoom=3.5, mapbox_style="open-street-map",
+                            height=800, center=dict(lat=36, lon=117))
+
+    # Add the nodes as markers
+    # fig.add_scattermapbox(
+    #     lat=df_nodes['Latitude'],
+    #     lon=df_nodes['Longitude'],
+    #     mode='markers',
+    #     marker=dict(size=3, color='#999999'),
+    #     hoverinfo='text',
+    #     hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"),
+    #     hovertext="Node n°" + df_nodes['Node ID'].astype(str) + "<br>Position: (Lat=" + df_nodes['Latitude'].astype(
+    #         str) + ", Lon=" + df_nodes['Longitude'].astype(str) + ")<br>Total passages: " + df_nodes[
+    #                   'Total passages'].astype(str) + "<br>Total minutes: " + df_nodes['Total minutes'].astype(str),
+    #     name="Nodes"
+    # )
+
+    # Add the two paths as separate traces
+    for i, path in enumerate([path1]):
+        path_edges_x = []
+        path_edges_y = []
+        for j in range(len(path) - 1):
+            source = path[j]
+            target = path[j + 1]
+            source_data = df_nodes[df_nodes['Node ID'] == source].iloc[0]
+            target_data = df_nodes[df_nodes['Node ID'] == target].iloc[0]
+            path_edges_x += [source_data['Longitude'], target_data['Longitude'], None]
+            path_edges_y += [source_data['Latitude'], target_data['Latitude'], None]
+        fig.add_trace(go.Scattermapbox(
+            lat=path_edges_y,
+            lon=path_edges_x,
+            mode='lines',
+            line=dict(width=2, color='blue' if i==0 else 'red'),
+            hoverinfo='skip',
+            name='Shortest by mileage'
+        ))
+
+    # Define a dictionary that maps each train to a unique color
+    train_map = {train: i for i, train in enumerate(set(path2[2]))}
+    colormap = cm.get_cmap('tab20', len(train_map))
+
+    # Create a list of unique trains
+    trains = list(OrderedDict.fromkeys(path2[2][1:]))
+
+    # # Iterate through the trains
+    # for train in trains:
+    #     # Find all the edges that belong to the train
+    #     edges = [(i, i + 1) for i, t in enumerate(path2[2][1:]) if t == train]
+    #
+    #     # Create a list of coordinates and times for the edges, with None values between each pair of nodes
+    #     lon_list = []
+    #     lat_list = []
+    #     time_list = []
+    #
+    #     for i, edge in enumerate(edges):
+    #         node_1 = path2[0][edge[0]]
+    #         node_2 = path2[0][edge[1]]
+    #         lon_1 = df_nodes.loc[df_nodes['Node ID'] == node_1, 'Longitude'].values[0]
+    #         lat_1 = df_nodes.loc[df_nodes['Node ID'] == node_1, 'Latitude'].values[0]
+    #         time_1 = path2[1][edge[0]].strftime('%H/%M/%S')
+    #
+    #         lon_2 = df_nodes.loc[df_nodes['Node ID'] == node_2, 'Longitude'].values[0]
+    #         lat_2 = df_nodes.loc[df_nodes['Node ID'] == node_2, 'Latitude'].values[0]
+    #         time_2 = path2[1][edge[1]].strftime('%H/%M/%S')
+    #
+    #         lon_list.append(lon_1)
+    #         lat_list.append(lat_1)
+    #         time_list.append(time_1)
+    #
+    #         lon_list.append(lon_2)
+    #         lat_list.append(lat_2)
+    #         time_list.append(time_2)
+    #
+    #         if i < len(edges) - 1:
+    #             lon_list.append(None)
+    #             lat_list.append(None)
+    #             time_list.append(None)
+    #
+
+    #
+    #     # Add the trace to the plot
+    #     color = colors.rgb2hex(colormap(train_map[train]))
+    #     fig.add_trace(go.Scattermapbox(
+    #         mode='lines+markers',
+    #         lon=df_edges['Longitude'],
+    #         lat=df_edges['Latitude'],
+    #         marker={'size': 10, 'color': color},
+    #         line={'width': 2, 'color': color},
+    #         hovertext='Train ' + str(train) + '<br>Time: ' + str(time_list),
+    #         name='Train ' + str(train)
+    #     ))
+    # Iterate through the trains
+    for train in trains:
+        # Find all the edges that belong to the train
+        edges = [(i, i + 1) for i, t in enumerate(path2[2][1:]) if t == train]
+
+        # Create a list of coordinates and times for the edges, with None values between each pair of nodes
+        lon_list = []
+        lat_list = []
+        time_list = []
+
+        for i, edge in enumerate(edges):
+            node_1 = path2[0][edge[0]]
+            node_2 = path2[0][edge[1]]
+            lon_1 = df_nodes.loc[df_nodes['Node ID'] == node_1, 'Longitude'].values[0]
+            lat_1 = df_nodes.loc[df_nodes['Node ID'] == node_1, 'Latitude'].values[0]
+            time_1 = path2[1][edge[0]].strftime('%H:%M:%S')
+
+            lon_2 = df_nodes.loc[df_nodes['Node ID'] == node_2, 'Longitude'].values[0]
+            lat_2 = df_nodes.loc[df_nodes['Node ID'] == node_2, 'Latitude'].values[0]
+            time_2 = path2[1][edge[1]].strftime('%H:%M:%S')
+
+            lon_list.append(lon_1)
+            lat_list.append(lat_1)
+            time_list.append(time_1)
+
+            lon_list.append(lon_2)
+            lat_list.append(lat_2)
+            time_list.append(time_2)
+
+            if i < len(edges) - 1:
+                lon_list.append(None)
+                lat_list.append(None)
+                time_list.append(None)
+
+        # Create a dataframe with the edge data
+        df_edges = pd.DataFrame({
+            'Longitude': lon_list,
+            'Latitude': lat_list,
+            'Time': time_list,
+        })
+
+        # Create a list of hovertext for each line segment
+        hovertext = []
+        for i in range(len(time_list) - 1):
+            if time_list[i] is not None and time_list[i + 1] is not None:
+                hovertext.append(
+                    'Train ' + str(train) + '<br>' + 'Departure: ' + str(time_list[i]) + '<br>' + 'Arrival: ' + str(
+                        time_list[i + 1]))
+            else:
+                hovertext.append(None)
+
+        # Add the trace to the plot
+        color = colors.rgb2hex(colormap(train_map[train]))
+        fig.add_trace(go.Scattermapbox(
+            mode='lines+markers',
+            lon=df_edges['Longitude'],
+            lat=df_edges['Latitude'],
+            marker={'size': 10, 'color': color},
+            line={'width': 2, 'color': color},
+            hovertext=hovertext,
+            name='Train ' + str(train)
+        ))
+
+    # Update the layout
+    fig_update_layout(fig)
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)

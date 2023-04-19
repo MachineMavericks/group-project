@@ -124,3 +124,17 @@ def smallworld(railway):
     else:
         raise Exception("No pickle file found for the specified railway.")
         return render_template("error/pickle_error.html")
+
+
+@nxgraph_bp.route('/shortest_path/<string:railway>/', methods=['GET', 'POST'])
+def shortest_path(railway):
+    if os.path.isfile("static/output/" + railway + ".pickle"):
+        plotly_shortest_path(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
+                             day=request.args.get('day'),
+                             dep_time=request.args.get('departure'),
+                             start=request.args.get('from'),
+                             end=request.args.get('destination'))
+        return render_template("shortest_path_plotly.html")
+    else:
+        raise Exception("No pickle file found for the specified railway.")
+        return render_template("error/pickle_error.html")
