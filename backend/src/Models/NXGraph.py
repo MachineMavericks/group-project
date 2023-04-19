@@ -3,7 +3,7 @@ import pickle
 import time
 
 
-class NXGraph(nx.MultiGraph):
+class NXGraph(nx.MultiDiGraph):
     def __init__(self, graph=None, pickle_path=None, dataset_number=1, day=None, save_gml=None, output_path=None):
         start = time.time()
         super().__init__()
