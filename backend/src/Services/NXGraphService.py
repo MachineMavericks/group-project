@@ -111,7 +111,7 @@ def df_from_nxgraph(nxgraph, component="node"):
 
 
 def largest_connected_component_ratio(original_graph, attacked_graph):
-    og_cc, cc = nx.connected_components(original_graph), nx.connected_components(attacked_graph)
+    og_cc, cc = nx.strongly_connected_components(original_graph), nx.strongly_connected_components(attacked_graph)
     og_lcc, lcc = max(og_cc, key=len), max(cc, key=len)
 
     return len(lcc) / len(og_lcc)
@@ -416,6 +416,8 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
         return empty_map(pickle_path, "Resilience", output_path)
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
+    nx_graph_copy = nxgraph.copy()
+    lcc, global_eff = 0, 0
     # FRACTION VERIFICATION:
     if fraction is None or fraction == "":
         return custom_error("Fraction not specified!")
@@ -423,7 +425,6 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
         fraction = float(fraction)
     if strategy == "targeted":
         if component == "node":
-            nx_graph_copy = nxgraph.copy()
             nodes_to_remove = int(len(nx_graph_copy) * fraction)
             metric_dict = {}
             if metric == 'degree_centrality':
@@ -486,6 +487,8 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
                           name="Destroyed nodes", hoverinfo="text",
                           hovertext="Node n°" + destroyed_df['Node ID'].astype(str) + "<br>" + metric + ": " +
                                     destroyed_df[metric].astype(str))
+    fig.add_scatter(x=[None], y=[None], mode='none', name='LCC size ratio: ' + str(lcc)
+                                                  + '<br>Global efficiency ratio: ' + str(global_eff))
     # GLOBAL SETTINGS:
     fig_update_layout(fig)
     fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
