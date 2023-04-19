@@ -867,8 +867,10 @@ def plotly_shortest_path(pickle_path, dep_time=None, end=None, output_path=None,
 
     # Create the empty map
     fig = px.scatter_mapbox(df_nodes[df_nodes["Node ID"] == -1], lat="Latitude", lon="Longitude", hover_name="Node ID",
-                            hover_data=["Total passages", "Total minutes"], zoom=3.5, mapbox_style="open-street-map",
-                            height=800, center=dict(lat=36, lon=117))
+                            hover_data=["Total passages", "Total minutes"], mapbox_style="open-street-map",
+                            height=800,
+                            center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
+                            zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2)
 
     # Add the nodes as markers
     # fig.add_scattermapbox(

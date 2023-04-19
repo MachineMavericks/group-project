@@ -3,20 +3,28 @@
 {% block filters %}
 <form class="row">
     <div class="col">
-        <input type="day" name="day" id="day" class="col form-control btn-outline-white bg-gray-800 mt-3 text-white" placeholder="Day"
-               onfocus="focused(this)" onfocusout="defocused(this)">
+        <div class="input-group input-group-outline my-3">
+            <label class="form-label">Day</label>
+            <input type="number" name="day" class="form-control text-white">
+        </div>
     </div>
     <div class="col">
-        <input type="node" name="from" id="from" class="col form-control btn-outline-white bg-gray-800 mt-3 text-white" placeholder="From"
-               onfocus="focused(this)" onfocusout="defocused(this)">
+        <div class="input-group input-group-outline my-3">
+            <label class="form-label">Departure station</label>
+            <input type="node" name="from" class="form-control text-white">
+        </div>
     </div>
     <div class="col">
-        <input type="node" name="destination" id="destination" class="col form-control btn-outline-white bg-gray-800 mt-3 text-white" placeholder="Destination"
-               onfocus="focused(this)" onfocusout="defocused(this)">
+        <div class="input-group input-group-outline my-3">
+            <label class="form-label">Destination station</label>
+            <input type="node" name="destination" class="form-control text-white">
+        </div>
     </div>
     <div class="col">
-        <input type="time" name="departure" id="departure" class="col form-control btn-outline-white bg-gray-800 mt-3 text-white" placeholder="Departure"
-               onfocus="focused(this)" onfocusout="defocused(this)">
+        <div class="input-group input-group-outline my-3">
+            <label class="form-label">Departure time</label>
+            <input type="time" name="departure" class="form-control text-white">
+        </div>
     </div>
     <div class="col">
         <button class="btn btn-outline-light mt-3 text-bold" type="submit">Compute</button>
