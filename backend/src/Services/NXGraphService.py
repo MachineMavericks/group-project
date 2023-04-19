@@ -780,8 +780,6 @@ def travel_cost(graph: Graph, current_node, next_node, current_time):
     return best_cost, best_arrival.time(), best_travel.get_train_id()
 
 
-# TODO: mind that Graph does not consider day ==> id day specified nx_graph and graph will be different
-
 def a_star_shortest_path(nx_graph: NXGraph, graph: Graph, root, goal, departure_time):
     """
     Computes the shortest path from a station to another departing at a chosen time with A* search.
@@ -872,20 +870,6 @@ def plotly_shortest_path(pickle_path, dep_time=None, end=None, output_path=None,
                             center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
                             zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2)
 
-    # Add the nodes as markers
-    # fig.add_scattermapbox(
-    #     lat=df_nodes['Latitude'],
-    #     lon=df_nodes['Longitude'],
-    #     mode='markers',
-    #     marker=dict(size=3, color='#999999'),
-    #     hoverinfo='text',
-    #     hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"),
-    #     hovertext="Node n°" + df_nodes['Node ID'].astype(str) + "<br>Position: (Lat=" + df_nodes['Latitude'].astype(
-    #         str) + ", Lon=" + df_nodes['Longitude'].astype(str) + ")<br>Total passages: " + df_nodes[
-    #                   'Total passages'].astype(str) + "<br>Total minutes: " + df_nodes['Total minutes'].astype(str),
-    #     name="Nodes"
-    # )
-
     # Add the two paths as separate traces
     for i, path in enumerate([path1]):
         path_edges_x = []
@@ -913,53 +897,6 @@ def plotly_shortest_path(pickle_path, dep_time=None, end=None, output_path=None,
     # Create a list of unique trains
     trains = list(OrderedDict.fromkeys(path2[2][1:]))
 
-    # # Iterate through the trains
-    # for train in trains:
-    #     # Find all the edges that belong to the train
-    #     edges = [(i, i + 1) for i, t in enumerate(path2[2][1:]) if t == train]
-    #
-    #     # Create a list of coordinates and times for the edges, with None values between each pair of nodes
-    #     lon_list = []
-    #     lat_list = []
-    #     time_list = []
-    #
-    #     for i, edge in enumerate(edges):
-    #         node_1 = path2[0][edge[0]]
-    #         node_2 = path2[0][edge[1]]
-    #         lon_1 = df_nodes.loc[df_nodes['Node ID'] == node_1, 'Longitude'].values[0]
-    #         lat_1 = df_nodes.loc[df_nodes['Node ID'] == node_1, 'Latitude'].values[0]
-    #         time_1 = path2[1][edge[0]].strftime('%H/%M/%S')
-    #
-    #         lon_2 = df_nodes.loc[df_nodes['Node ID'] == node_2, 'Longitude'].values[0]
-    #         lat_2 = df_nodes.loc[df_nodes['Node ID'] == node_2, 'Latitude'].values[0]
-    #         time_2 = path2[1][edge[1]].strftime('%H/%M/%S')
-    #
-    #         lon_list.append(lon_1)
-    #         lat_list.append(lat_1)
-    #         time_list.append(time_1)
-    #
-    #         lon_list.append(lon_2)
-    #         lat_list.append(lat_2)
-    #         time_list.append(time_2)
-    #
-    #         if i < len(edges) - 1:
-    #             lon_list.append(None)
-    #             lat_list.append(None)
-    #             time_list.append(None)
-    #
-
-    #
-    #     # Add the trace to the plot
-    #     color = colors.rgb2hex(colormap(train_map[train]))
-    #     fig.add_trace(go.Scattermapbox(
-    #         mode='lines+markers',
-    #         lon=df_edges['Longitude'],
-    #         lat=df_edges['Latitude'],
-    #         marker={'size': 10, 'color': color},
-    #         line={'width': 2, 'color': color},
-    #         hovertext='Train ' + str(train) + '<br>Time: ' + str(time_list),
-    #         name='Train ' + str(train)
-    #     ))
     # Iterate through the trains
     for train in trains:
         # Find all the edges that belong to the train
