@@ -343,17 +343,17 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
         vmax = max_metric
         # Steps array using the median metric so that the color scale is centered on it:
         steps = [metrics[int(len(metrics) * i / 10)] for i in range(10)]
-        # Colors from light green to yellow, to orange, to red:
+        # Colors from dark blue to purple, to pink, to orange, to yellow:
         colors = [
-            "rgb(255, 255, 204)",
-            "rgb(255, 237, 160)",
-            "rgb(254, 217, 118)",
-            "rgb(254, 178, 76)",
-            "rgb(253, 141, 60)",
-            "rgb(252, 78, 42)",
-            "rgb(227, 26, 28)",
-            "rgb(189, 0, 38)",
-            "rgb(128, 0, 38)",
+            "rgb(18, 8, 137)",
+            "rgb(70, 3, 159)",
+            "rgb(114, 1, 168)",
+            "rgb(153, 22, 159)",
+            "rgb(196, 63, 127)",
+            "rgb(223, 98, 100)",
+            "rgb(244, 140, 70)",
+            "rgb(252, 185, 46)",
+            "rgb(241, 244, 33)",
         ]
         # EDGES: Add edges as disconnected lines in a single trace
         edges_x = [[] for i in range(len(steps))]
