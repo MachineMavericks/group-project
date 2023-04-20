@@ -443,13 +443,31 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
             # evaluate
             lcc = largest_connected_component_ratio(nxgraph, nx_graph_copy)
             global_eff = global_efficiency_ratio(nxgraph, nx_graph_copy)
-            print("Largest connected component ratio: ", lcc)
-            print("Global efficiency ratio: ", global_eff)
+
         elif component == "edge":
             return custom_error("Targetted edge resilience not implemented yet...")
     elif strategy == "random":
         if component == "node":
-            return custom_error("Random node resilience not implemented yet...")
+            # return custom_error("Random node resilience not implemented yet...")
+            iterations = 1
+            for i in range(iterations):
+                nx_graph_copy = nxgraph.copy()
+                nodes = list(nx_graph_copy.nodes())
+                steps = 0
+                num_nodes_to_remove = int(len(nodes) * fraction)
+
+                while nodes and steps < num_nodes_to_remove:
+                    node = random.choice(nodes)
+                    nodes.remove(node)
+                    nx_graph_copy.remove_node(node)
+                    steps += 1
+
+                lcc += largest_connected_component_ratio(nxgraph, nx_graph_copy)
+                global_eff += global_efficiency_ratio(nxgraph, nx_graph_copy)
+
+            lcc /= iterations
+            global_eff /= iterations
+
         elif component == "edge":
             return custom_error("Random edge resilience not implemented yet...")
 
@@ -459,8 +477,9 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
         id = node[0]
         lat = np.round(node[1]['lat'], 2)
         lon = np.round(node[1]['lon'], 2)
-        value = node[1][metric]
-        init_nodes.append([id, lat, lon, value])
+        # value = node[1][metric]
+        # init_nodes.append([id, lat, lon, value])
+        init_nodes.append([id, lat, lon])
     destroyed_nodes = []
     for node in nxgraph.nodes(data=True):
         if node[0] in nx_graph_copy.nodes():
@@ -487,8 +506,8 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
                           name="Destroyed nodes", hoverinfo="text",
                           hovertext="Node n°" + destroyed_df['Node ID'].astype(str) + "<br>" + metric + ": " +
                                     destroyed_df[metric].astype(str))
-    fig.add_scatter(x=[None], y=[None], mode='none', name='LCC size ratio: ' + str(lcc)
-                                                  + '<br>Global efficiency ratio: ' + str(global_eff))
+    fig.add_scatter(x=[None], y=[None], mode='none', name='<br>LCC size ratio: ' + str(lcc)
+                                                          + '<br>Global efficiency ratio: ' + str(global_eff))
     # GLOBAL SETTINGS:
     fig_update_layout(fig)
     fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
@@ -886,7 +905,7 @@ def plotly_shortest_path(pickle_path, dep_time=None, end=None, output_path=None,
             lat=path_edges_y,
             lon=path_edges_x,
             mode='lines',
-            line=dict(width=2, color='blue' if i==0 else 'red'),
+            line=dict(width=2, color='blue' if i == 0 else 'red'),
             hoverinfo='skip',
             name='Shortest by mileage'
         ))

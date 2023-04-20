@@ -55,6 +55,7 @@ def choose_dataset():
             return render_template("dataset/upload_done.html")
     return render_template("dataset/dataset_selection.html")
 
+
 @app.route('/clear-cache', methods=['GET', 'POST'])
 def clear_cache():
     shutil.rmtree(output_dir)
