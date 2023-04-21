@@ -93,9 +93,9 @@ def heatmap(railway):
 def resilience(railway):
     if os.path.isfile("static/output/" + railway + ".pickle"):
         plotly_resilience(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
-                          strategy=request.args.get('strategy'),
-                          component=request.args.get('component'), metric=request.args.get('metric'),
-                          day=request.args.get('day'), fraction=request.args.get('fraction'))
+                          strategy=request.args.get('strategy'), component=request.args.get('component'),
+                          metric=request.args.get('metric'), day=request.args.get('day'),
+                          fraction=request.args.get('fraction'), smallworld=request.args.get('smallworld'))
         return render_template("resilience_plotly.html")
     else:
         raise Exception("No pickle file found for the specified railway.")

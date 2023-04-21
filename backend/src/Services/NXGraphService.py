@@ -1,8 +1,8 @@
 # IMPORTS=
 import heapq
 import math
+import os
 import pickle
-import random
 from collections import OrderedDict
 from datetime import datetime, date, timedelta
 
@@ -69,8 +69,8 @@ def custom_error(my_error):
                '<div class="card bg-gradient-danger"><br>'
                '<i class="material-icons-round m-2 align-self-center" style="color:black; font-size: xxx-large">'
                'warning</i><br>'
-               '<p class="text-bold align-self-center text-lg-center" id="err" style="color:black">' + my_error + '</p>'
-                                                                                                                  '<br></div></div><div class="col"></div></div><br><br>')
+               '<p class="text-bold align-self-center text-lg-center" id="err" style="color:black">' + my_error +
+               '</p>''<br></div></div><div class="col"></div></div><br><br>')
     file.close()
 
 
@@ -411,7 +411,7 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
 
 # PLOTLY RESILIENCE: TODO: add edges (red/white) + add sub functions for duplicated code
 def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metric=None, fraction=None,
-                      output_path=None):
+                      output_path=None, smallworld=None):
     if component is None:
         return empty_map(pickle_path, "Resilience", output_path)
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
@@ -487,8 +487,8 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
                           name="Destroyed nodes", hoverinfo="text",
                           hovertext="Node n°" + destroyed_df['Node ID'].astype(str) + "<br>" + metric + ": " +
                                     destroyed_df[metric].astype(str))
-    fig.add_scatter(x=[None], y=[None], mode='none', name='LCC size ratio: ' + str(lcc)
-                                                  + '<br>Global efficiency ratio: ' + str(global_eff))
+    fig.add_scatter(x=[None], y=[None], mode='none', name='LCC size ratio: ' + str(round(lcc,3))
+                                                  + '<br>Global efficiency ratio: ' + str(round(global_eff, 3)))
     # GLOBAL SETTINGS:
     fig_update_layout(fig)
     fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
@@ -501,6 +501,8 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
     # WRITE HTML FILE:
     if output_path is not None:
         fig.write_html(output_path)
+    if smallworld == "true":
+        plotly_small_world(pickle_path, day, output_path, nx_graph_copy)
     return fig
 
 
@@ -572,9 +574,12 @@ def plotly_clustering(pickle_path, day=None, algorithm=None, weight=None, output
 
 
 # PLOTLY SMALL WORLD:
-def plotly_small_world(pickle_path, day=None, output_path=None):
-    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
-                      day=int(day) if day is not None and day != "" else None)
+def plotly_small_world(pickle_path, day=None, output_path=None, nxgraph=None):
+    complement = True
+    if nxgraph is None:
+        nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
+                          day=int(day) if day is not None and day != "" else None)
+        complement = False
     fig = make_subplots(rows=2, cols=2)
     fig.update_layout(title_text=f"Small-World Features " + (
         "(day " + str(day) + ")" if day is not None and day != "" else ""), height=700)
@@ -697,8 +702,16 @@ def plotly_small_world(pickle_path, day=None, output_path=None):
     )
 
     # WRITE HTML FILE:
-    if output_path is not None:
+    if output_path is not None and not complement:
         fig.write_html(output_path)
+    else:
+        fig.write_html("static/output/temp.html")
+        map_plot = open(output_path, "a")
+        graph_plot = open("static/output/temp.html", "r", errors="ignore")
+        map_plot.write(graph_plot.read())
+        map_plot.close()
+        graph_plot.close()
+        os.remove("static/output/temp.html")
     return fig
 
 
