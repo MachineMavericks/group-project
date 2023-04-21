@@ -148,3 +148,13 @@ def centrality(railway):
     else:
         raise Exception("No pickle file found for the specified railway.")
         return render_template("error/pickle_error.html")
+
+@nxgraph_bp.route('/correlation/<string:railway>/', methods=['GET', 'POST'])
+def correlation(railway):
+    if os.path.isfile("static/output/" + railway + ".pickle"):
+        plotly_correlation(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
+                           day=request.args.get('day'))
+        return render_template("correlation_plotly.html")
+    else:
+        raise Exception("No pickle file found for the specified railway.")
+        return render_template("error/pickle_error.html")

@@ -1,0 +1,15 @@
+{% extends 'base_plotly.html' %}
+
+{% block filters %}
+<form class="row">
+    <div class="col max-width-200">
+        <div class="input-group input-group-outline my-3">
+            <label class="form-label">Day</label>
+            <input type="number" name="day" class="form-control text-white">
+        </div>
+    </div>
+    <div class="col">
+        <button class="btn btn-outline-light mt-3 text-bold" type="submit">Compute</button>
+    </div>
+</form>
+{% endblock %}
