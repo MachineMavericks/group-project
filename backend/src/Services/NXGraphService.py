@@ -715,6 +715,58 @@ def plotly_small_world(pickle_path, day=None, output_path=None, nxgraph=None):
     return fig
 
 
+# PLOTLY CENTRALITY:
+def plotly_centrality(pickle_path, day=None, output_path=None):
+    nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
+                          day=int(day) if day is not None and day != "" else None)
+    fig = make_subplots(rows=3, cols=1)
+    fig.update_layout(title_text=f"Centrality Measures " + (
+        "(day " + str(day) + ")" if day is not None and day != "" else ""), height=700)
+    nbins = 100
+    nb_nd = nxgraph.number_of_nodes()
+
+    # DEGREE CENTRALITY HISTOGRAM
+    deg_c = list(dict(nx.degree_centrality(nxgraph)).values())
+    fig.add_trace(go.Histogram(x=deg_c, nbinsx=nbins, name="Degree Centrality",
+                               hovertemplate='<b>Degree Centrality Histogram</b><br>Degree centrality: %{x}'
+                                             '<br>Number of nodes: %{y}<br><extra></extra>'), col=1, row=1)
+    fig.update_yaxes(title_text="Number of nodes", row=1, col=1, title_standoff=0)
+    fig.update_xaxes(title_text="Degree Centrality", row=1, col=1, title_standoff=0)
+    avg_deg_c = sum(deg_c) / len(deg_c)
+    annot_deg = "avg = " + str(round(avg_deg_c, 5))
+    fig.add_vline(x=avg_deg_c, line_dash="dot", annotation_text=annot_deg, annotation_position="top right",
+                  row=1, col=1,)
+
+    # BETWEENNESS CENTRALITY HISTOGRAM
+    bet_c = list(dict(nx.betweenness_centrality(nxgraph)).values())
+    fig.add_trace(go.Histogram(x=bet_c, nbinsx=nbins, name="Betweenness Centrality",
+                               hovertemplate='<b>Betweenness Centrality Histogram</b><br>Betweenness centrality: %{x}'
+                                             '<br>Number of nodes: %{y}<br><extra></extra>'), col=1, row=2)
+    fig.update_yaxes(title_text="Number of nodes", col=1, row=2, title_standoff=0)
+    fig.update_xaxes(title_text="Betweenness Centrality", col=1, row=2, title_standoff=0)
+    avg_bet_c = sum(bet_c) / len(bet_c)
+    annot_bet = "avg = " + str(round(avg_bet_c, 5))
+    fig.add_vline(x=avg_bet_c, line_dash="dot", annotation_text=annot_bet, annotation_position="top right",
+                  col=1, row=2)
+
+    # CLOSENESS CENTRALITY HISTOGRAM
+    clos_c = list(dict(nx.closeness_centrality(nxgraph)).values())
+    fig.add_trace(go.Histogram(x=clos_c, nbinsx=nbins, name="Closeness Centrality",
+                               hovertemplate='<b>Closeness Centrality Histogram</b><br>Closeness centrality: %{x}'
+                                             '<br>Number of nodes: %{y}<br><extra></extra>'), col=1, row=3)
+    fig.update_yaxes(title_text="Number of nodes", col=1, row=3, title_standoff=0)
+    fig.update_xaxes(title_text="Closeness Centrality", col=1, row=3, title_standoff=0)
+    avg_clos_c = sum(clos_c) / len(clos_c)
+    annot_clos = "avg = " + str(round(avg_clos_c, 5))
+    fig.add_vline(x=avg_clos_c, line_dash="dot", annotation_text=annot_clos, annotation_position="top right",
+                  col=1, row=3)
+
+    # WRITE HTML FILE:
+    if output_path is not None:
+        fig.write_html(output_path)
+    return fig
+
+
 # SHORTEST PATH ANALYSIS
 
 def astar_path(graph, start, end):

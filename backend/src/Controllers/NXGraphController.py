@@ -138,3 +138,13 @@ def shortest_path(railway):
     else:
         raise Exception("No pickle file found for the specified railway.")
         return render_template("error/pickle_error.html")
+
+@nxgraph_bp.route('/centrality/<string:railway>/', methods=['GET', 'POST'])
+def centrality(railway):
+    if os.path.isfile("static/output/" + railway + ".pickle"):
+        plotly_centrality(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
+                           day=request.args.get('day'))
+        return render_template("centrality_plotly.html")
+    else:
+        raise Exception("No pickle file found for the specified railway.")
+        return render_template("error/pickle_error.html")
