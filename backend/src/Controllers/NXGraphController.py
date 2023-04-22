@@ -153,7 +153,7 @@ def centrality(railway):
 def correlation(railway):
     if os.path.isfile("static/output/" + railway + ".pickle"):
         plotly_correlation(pickle_path="static/output/" + railway + ".pickle", output_path='static/output/plotly.html',
-                           day=request.args.get('day'))
+                           day=request.args.get('day'), neighbor=request.args.get('neighbor'))
         return render_template("correlation_plotly.html")
     else:
         raise Exception("No pickle file found for the specified railway.")

@@ -769,29 +769,19 @@ def plotly_centrality(pickle_path, day=None, output_path=None):
 
 # PLOTLY CORRELATION:
 
-def plotly_correlation(pickle_path, day=None, output_path=None):
+def plotly_correlation(pickle_path, day=None, output_path=None, neighbor=None):
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                           day=int(day) if day is not None and day != "" else None)
-    fig = make_subplots(rows=3, cols=1)
+    fig = make_subplots(rows=2, cols=1)
+    if neighbor == 'true':
+        fig = make_subplots(rows=3, cols=1)
     fig.update_layout(title_text=f"Correlation Measures " + (
         "(day " + str(day) + ")" if day is not None and day != "" else ""), height=700)
     nbins = 100
     nb_nd = nxgraph.number_of_nodes()
 
-    # AVERAGE NEIGHBOR DEGREE HISTOGRAM
-    avg_nbh_degrees = dict(nx.average_neighbor_degree(nxgraph))
-    list_avnede = list(avg_nbh_degrees.values())
-    fig.add_trace(go.Histogram(x=list_avnede, nbinsx=nbins, name="Average Neighbor Degree",
-                               hovertemplate='<b>Average Neighbor Degree Histogram</b><br>Average neighbor degree: %{x}'
-                                             '<br>Number of nodes: %{y}<br><extra></extra>'), col=1, row=1)
-    fig.update_yaxes(title_text="Number of nodes", row=1, col=1, title_standoff=0)
-    fig.update_xaxes(title_text="Average Neighbor Degree", row=1, col=1, title_standoff=0)
-    avg_avg_nede = sum(list_avnede) / len(list_avnede)
-    annot = "avg = " + str(round(avg_avg_nede, 5))
-    fig.add_vline(x=avg_avg_nede, line_dash="dot", annotation_text=annot, annotation_position="top right",
-                  row=1, col=1,)
-
     # DEGREE CORRELATION, CLUSTERING DEGREE CORRELATION
+    avg_nbh_degrees = dict(nx.average_neighbor_degree(nxgraph))
     degrees = dict(nx.degree(nxgraph))
     clus = dict(nx.clustering(nx.Graph(nxgraph)))
     nb_deg = {}
@@ -818,9 +808,9 @@ def plotly_correlation(pickle_path, day=None, output_path=None):
                              mode='markers',
                              name="Degree Correlation",
                              hovertemplate='<b>Degree Correlation</b><br>Degree: %{x}'
-                                           '<br>Degree correlation: %{y}<br><extra></extra>'), row=2, col=1)
-    fig.update_yaxes(title_text="Degree Correlation", row=2, col=1, title_standoff=0)
-    fig.update_xaxes(title_text="Degree", row=2, col=1, title_standoff=0)
+                                           '<br>Degree correlation: %{y}<br><extra></extra>'), row=1, col=1)
+    fig.update_yaxes(title_text="Degree Correlation", row=1, col=1, title_standoff=0)
+    fig.update_xaxes(title_text="Degree", row=1, col=1, title_standoff=0)
     clus_deg_corr = []
     for deg in nb_deg:
         clus_deg_corr.append(sum_clus_deg[deg] / nb_deg[deg])
@@ -829,9 +819,22 @@ def plotly_correlation(pickle_path, day=None, output_path=None):
                              mode='markers',
                              name="Clustering-Degree Correlation",
                              hovertemplate='<b>Clustering-Degree Correlation</b><br>Degree: %{x}'
-                                           '<br>Clustering-degree correlation: %{y}<br><extra></extra>'), row=3, col=1)
-    fig.update_yaxes(title_text="Clustering-Degree Correlation", row=3, col=1, title_standoff=0)
-    fig.update_xaxes(title_text="Degree", row=3, col=1, title_standoff=0)
+                                           '<br>Clustering-degree correlation: %{y}<br><extra></extra>'), row=2, col=1)
+    fig.update_yaxes(title_text="Clustering-Degree Correlation", row=2, col=1, title_standoff=0)
+    fig.update_xaxes(title_text="Degree", row=2, col=1, title_standoff=0)
+
+    # AVERAGE NEIGHBOR DEGREE HISTOGRAM
+    if neighbor == 'true':
+        list_avnede = list(avg_nbh_degrees.values())
+        fig.add_trace(go.Histogram(x=list_avnede, nbinsx=nbins, name="Average Neighbor Degree",
+                                   hovertemplate='<b>Average Neighbor Degree Histogram</b><br>Average neighbor degree: %{x}'
+                                                 '<br>Number of nodes: %{y}<br><extra></extra>'), col=1, row=3)
+        fig.update_yaxes(title_text="Number of nodes", row=3, col=1, title_standoff=0)
+        fig.update_xaxes(title_text="Average Neighbor Degree", row=3, col=1, title_standoff=0)
+        avg_avg_nede = sum(list_avnede) / len(list_avnede)
+        annot = "avg = " + str(round(avg_avg_nede, 5))
+        fig.add_vline(x=avg_avg_nede, line_dash="dot", annotation_text=annot, annotation_position="top right",
+                      row=3, col=1, )
 
     # WRITE HTML FILE:
     if output_path is not None:
