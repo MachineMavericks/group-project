@@ -43,6 +43,23 @@ def average_shortest_path_length_ratio(original_graph, attacked_graph):
 
     return new_avg_spl / original_avg_spl
 
+# TODO: this is not working
+def average_shortest_path_length_ratio_2(original_graph, attacked_graph):
+    original_spl = dict(nx.shortest_path_length(original_graph))
+    path_lengths = [x.values for x in original_spl.values()]
+    original_avg_spl = sum(x for x in path_lengths) / (len(original_graph) * (len(original_graph) - 1))
+
+    # shortest path computation is infinite if graph is disconnected
+    try:
+        new_spl = dict(nx.shortest_path_length(attacked_graph))
+        path_lengths = [x.values for x in new_spl.values()]
+        new_avg_spl = sum(x for x in path_lengths) / (len(attacked_graph) * (len(attacked_graph) - 1))
+
+    except nx.NetworkXError:
+        new_avg_spl = nx.diameter(original_graph)
+
+    return new_avg_spl / original_avg_spl
+
 
 def global_efficiency_weighted(graph, weight='mileage'):
     n = len(graph)
