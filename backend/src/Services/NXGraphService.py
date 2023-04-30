@@ -5,7 +5,6 @@ import os
 import pickle
 from collections import OrderedDict
 from datetime import datetime, date, timedelta
-
 import networkx as nx
 from itertools import permutations
 import networkx.algorithms.community as nx_comm
@@ -26,13 +25,16 @@ from src.Models.Graph import Graph
 
 # WARNINGS=
 import warnings
-
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 
 # COMMON DATA/SETTINGS FUNCTIONS:
 def fig_update_layout(fig):
+    """
+    This function updates the layout of the figure with specific parameters that are used throughout the project.
+    :param fig: The figure to update its layout.
+    """
     fig.update_layout(hoverlabel=dict(bgcolor="white", font_size=16, font_family="Rockwell"))
     fig.update_layout({
         'plot_bgcolor': 'rgba(0, 0, 0, 0)',
@@ -50,6 +52,12 @@ def fig_update_layout(fig):
 
 
 def empty_map(pickle_path, title, output_path):
+    """
+    This function creates an empty map, necessary for the first page of the app when no parameters are selected in the form.
+    :param pickle_path: The path of the pickle file.
+    :param title: The title of the figure.
+    :param output_path: The output path of the html file.
+    """
     fig = px.scatter_mapbox(
         center=dict(lat=37, lon=106) if pickle_path == "static/output/chinese.pickle" else dict(lat=21, lon=80),
         zoom=3.4 if pickle_path == "static/output/chinese.pickle" else 4.2,
@@ -62,6 +70,11 @@ def empty_map(pickle_path, title, output_path):
 
 
 def custom_error(my_error):
+    """
+    This function creates a custom error page to display the raised error to the user. (Metrics not implemented,
+    components not implemented, etc.)
+    :param my_error: The error message to display.
+    """
     file = open("static/output/plotly.html", "w")
     file.write('<div class="row">'
                '<div class="col"></div><div class="col"><br>'
@@ -76,6 +89,13 @@ def custom_error(my_error):
 
 # HELPER FUNCTIONS:
 def df_from_nxgraph(nxgraph, component="node"):
+    """
+    This function creates a dataframe from a networkx graph object, with values needed for the maps.
+    The values are different for nodes and edges, so the component parameter is used to distinguish between them.
+    :param nxgraph: The networkx graph object.
+    :param component: The component to create the dataframe for (either node or edge).
+    :return: The dataframe.
+    """
     node_metrics_dict = {
         "total_passages": "Total passages",
         "total_minutes": "Total minutes"
@@ -111,6 +131,14 @@ def df_from_nxgraph(nxgraph, component="node"):
 
 
 def largest_connected_component_ratio(original_graph, attacked_graph):
+    """
+    This function calculates the ratio between the largest connected component of the attacked graph and the largest
+    connected component of the original graph.
+    :param original_graph: The original graph object (networkx).
+    :param attacked_graph: The attacked graph object (networkx).
+    :return: The ratio between the largest connected component of the attacked graph and the largest connected component
+    of the original graph.
+    """
     og_cc, cc = nx.strongly_connected_components(original_graph), nx.strongly_connected_components(attacked_graph)
     og_lcc, lcc = max(og_cc, key=len), max(cc, key=len)
 
@@ -118,6 +146,13 @@ def largest_connected_component_ratio(original_graph, attacked_graph):
 
 
 def global_efficiency_weighted(graph, weight='mileage'):
+    """
+    This function calculates the global efficiency of a graph (networkx) with weighted edges (default: mileage).
+    It is calculated as the average of the inverse of the shortest paths between all pairs of nodes.
+    :param graph: The graph object (networkx).
+    :param weight: The weight of the edges to consider (default: mileage).
+    :return: The global efficiency of the graph.
+    """
     n = len(graph)
     denom = n * (n - 1)
     if denom != 0:
@@ -130,11 +165,25 @@ def global_efficiency_weighted(graph, weight='mileage'):
 
 
 def global_efficiency_ratio(original_graph, attacked_graph):
+    """
+    This function calculates the ratio between the global efficiency of the attacked graph and the global efficiency
+    of the original graph.
+    :param original_graph: The original graph object (networkx).
+    :param attacked_graph: The attacked graph object (networkx).
+    :return: The ratio between the global efficiency of the attacked graph and the global efficiency of the original
+    """
     return global_efficiency_weighted(attacked_graph) / global_efficiency_weighted(original_graph)
 
 
 def show_cluster_info(nx_graph, clusters, fig, weight, adv_legend):
-    # TODO: add load centrality and average mileage/euclidian distance + highest and lowest metric values
+    """
+    This function shows the information about the clusters in the graph.
+    :param nx_graph: The graph object (networkx).
+    :param clusters: The clusters of the graph.
+    :param fig: The figure to plot on.
+    :param weight: The weight of the edges to consider (default: mileage).
+    :param adv_legend: Whether to show the advanced legend or not (default: False).
+    """
     avg_degrees, avg_bet, avg_load = {}, {}, {}
     avg_deg, avg_between, avg_ld = 0, 0, 0
 
@@ -200,6 +249,13 @@ def show_cluster_info(nx_graph, clusters, fig, weight, adv_legend):
 
 # DEFAULT PLOTTING OF NODES:
 def plotly_default(pickle_path, day=None, output_path=None):
+    """
+    This function plots the nodes of the graph on a map with the default attributes (total passages and total minutes).
+    :param pickle_path: The path of the pickle file containing the graph.
+    :param day: The day to consider (default: None).
+    :param output_path: The path of the output file (default: None) in which to save the .html file.
+    :return: The figure.
+    """
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                       day=int(day) if day is not None and day != "" else None)
     # NODES DATAFRAME:
@@ -266,6 +322,15 @@ def plotly_default(pickle_path, day=None, output_path=None):
 
 # PLOTLY HEATMAP:
 def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_path=None):
+    """
+    This function plots the heatmap of the graph on a map with the specified parameters (component, metric, day).
+    :param pickle_path: The path of the pickle file containing the graph.
+    :param component: The component to consider (node or edge).
+    :param metric: The metric to consider (total_minutes, total_passages, degree_centrality, betweenness_centrality).
+    :param day: The day to consider (default: None).
+    :param output_path: The path of the output file (default: None) in which to save the .html file.
+    :return: The figure.
+    """
     if component is None:
         return empty_map(pickle_path, "Heatmap", output_path)
     # NXGRAPH:
@@ -412,6 +477,21 @@ def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_pa
 # PLOTLY RESILIENCE: TODO: add edges (red/white) + add sub functions for duplicated code
 def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metric=None, fraction=None,
                       output_path=None, smallworld=None):
+    """
+    This function plots the resilience of a network (ie. the nodes or edges that need to be removed to disconnect it).
+    It is given a pickle file and a strategy (random or targeted) and a component (node or edge). It is also given a
+    metric (degree_centrality, betweenness_centrality, closeness_centrality) and a fraction (0.1, 0.2, 0.3, 0.4, 0.5).
+    It returns a plotly map that highlights the nodes or edges that need to be removed to disconnect the network.
+    :param pickle_path: The path to the pickle file of the Graph object.
+    :param day: The day of the network to plot.
+    :param strategy: The strategy to use (random or targeted).
+    :param component: The component to remove (node or edge).
+    :param metric: The metric to use (degree_centrality, betweenness_centrality, closeness_centrality, etc).
+    :param fraction: The fraction of nodes or edges to remove.
+    :param output_path: The path to the output html file.
+    :param smallworld: The smallworldness of the network.
+    :return: A plotly map that highlights the nodes or edges that need to be removed to disconnect the network.
+    """
     if component is None:
         return empty_map(pickle_path, "Resilience", output_path)
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
@@ -508,6 +588,17 @@ def plotly_resilience(pickle_path, day=None, strategy=None, component=None, metr
 
 # PLOTLY CLUSTERING:
 def plotly_clustering(pickle_path, day=None, algorithm=None, weight=None, output_path=None, adv_legend=False):
+    """
+    This function plots the clustering of a graph using the algorithm specified in the parameters and saves it in the
+    output_path if specified.
+    :param pickle_path: The path to the pickle file containing the graph
+    :param day: The day to consider
+    :param algorithm: The algorithm to use
+    :param weight: The weight to use
+    :param output_path: The path to the output file
+    :param adv_legend: Whether to use the advanced legend or not
+    :return: The plotly figure.
+    """
     if algorithm is None:
         return empty_map(pickle_path, "Clustering", output_path)
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
@@ -575,6 +666,16 @@ def plotly_clustering(pickle_path, day=None, algorithm=None, weight=None, output
 
 # PLOTLY SMALL WORLD:
 def plotly_small_world(pickle_path, day=None, output_path=None, nxgraph=None):
+    """
+    This function plots the small world features of a graph and saves it in the output_path if specified.
+    Among the features it offers, there are the shortest path lenghts, the clustering coefficients, the degrees of each
+    node and the degree distribution with the power law and Poisson distributions.
+    :param pickle_path: The path to the pickle file containing the graph
+    :param day: The day to consider
+    :param output_path: The path to the output file
+    :param nxgraph: The NetworkX Graph to use
+    :return: The plotly figure.
+    """
     complement = True
     if nxgraph is None:
         nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
@@ -717,6 +818,13 @@ def plotly_small_world(pickle_path, day=None, output_path=None, nxgraph=None):
 
 # PLOTLY CENTRALITY:
 def plotly_centrality(pickle_path, day=None, output_path=None):
+    """
+    This function plots the centrality measures of the graph.
+    :param pickle_path: The path to the pickle file containing the graph.
+    :param day: The day to plot the centrality measures for.
+    :param output_path: The path to the output file.
+    :return: The centrality plot figure.
+    """
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                           day=int(day) if day is not None and day != "" else None)
     fig = make_subplots(rows=3, cols=1)
@@ -768,7 +876,6 @@ def plotly_centrality(pickle_path, day=None, output_path=None):
 
 
 # PLOTLY CORRELATION:
-
 def plotly_correlation(pickle_path, day=None, output_path=None, neighbor=None):
     nxgraph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                           day=int(day) if day is not None and day != "" else None)
@@ -843,11 +950,9 @@ def plotly_correlation(pickle_path, day=None, output_path=None, neighbor=None):
 
 
 # SHORTEST PATH ANALYSIS
-
 def astar_path(graph, start, end):
     """
     Finds the shortest path between the start and end nodes of the given graph using the A* algorithm.
-
     :param graph: The graph to search.
     :param start: The starting node.
     :param end: The ending node.
@@ -861,7 +966,6 @@ def heuristic_function(nx_graph, u, v):
     """
     Heuristic function to estimate the distance between the current node and the target node.
     The function return the inverse of the distance as nodes with higher distances are the worst candidates.
-
     :param nx_graph: railway network
     :param u: The current node.
     :param v: The target node.
@@ -878,7 +982,6 @@ def heuristic_function(nx_graph, u, v):
 def haversine(lat1, lon1, lat2, lon2):
     """
     Calculates the distance between two points on the Earth's surface using the Haversine formula.
-
     :param lat1: The latitude of the first point.
     :param lon1: The longitude of the first point.
     :param lat2: The latitude of the second point.
@@ -896,6 +999,14 @@ def haversine(lat1, lon1, lat2, lon2):
 
 
 def travel_cost(graph: Graph, current_node, next_node, current_time):
+    """
+    Calculates the cost of a travel between two nodes.
+    :param graph: The NetworkX graph to search on.
+    :param current_node: The from node.
+    :param next_node: The destination node.
+    :param current_time: The current time.
+    :return: The cost of the travel.
+    """
     best_cost = float('inf')
     best_travel = 0
     best_arrival = 0
@@ -984,6 +1095,16 @@ def a_star_shortest_path(nx_graph: NXGraph, graph: Graph, root, goal, departure_
 
 
 def plotly_shortest_path(pickle_path, dep_time=None, end=None, output_path=None, day=None, start=None):
+    """
+    Computes the shortest path from a station to another departing at a chosen time with A* search.
+    :param pickle_path: The path to the pickle file of the Graph object.
+    :param dep_time: The departure time.
+    :param end: The destination station.
+    :param output_path: The path to the output html file.
+    :param day: The day at which the path is computed.
+    :param start: The starting station.
+    :return: The html file with the plot of the temporal and spatial shortest paths.
+    """
     nx_graph = NXGraph(pickle_path=pickle_path, dataset_number=1,
                        day=int(day) if day is not None and day != "" else None)
     if start is None:

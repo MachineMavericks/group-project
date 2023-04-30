@@ -4,11 +4,7 @@ import shutil  # SHUTIL
 # FLASK IMPORTS:
 from flask import Flask, render_template, request, flash  # FLASK
 from werkzeug.utils import secure_filename
-# MODELS=
-from src.Models.Graph import Graph  # GRAPH
-from src.Models.NXGraph import NXGraph  # NXGRAPH
 # CONTROLLERS=
-from src.Controllers.GraphController import *  # GRAPH CONTROLLER
 from src.Controllers.NXGraphController import *  # NXGRAPH CONTROLLER
 
 # PATHS=
