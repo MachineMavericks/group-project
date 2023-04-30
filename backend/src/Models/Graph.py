@@ -20,6 +20,18 @@ from src.Preprocessing.NodePreprocessing import *
 
 class Graph:
     def __init__(self, filepath, output_dir=None, save_csvs=False, save_pickle=False):
+        """
+        This constructor creates a Graph object. It is used to construct the graph from the railway dataset.
+        What it does is:
+        1) Read the railway dataset.
+        2) Preprocess the railway dataset.
+        3) Construct the nodes dictionary, a parameter of the Graph object.
+        4) Construct the edges dictionary, a parameter of the Graph object.
+        :param filepath: The path of the railway dataset.
+        :param output_dir: The output directory where to save the csv files, as well as the pickle file.
+        :param save_csvs: A boolean flag that indicates whether to save the csv files or not.
+        :param save_pickle: A boolean flag that indicates whether to save the pickle file or not.
+        """
         self.filename = filepath.split('/')[-1].split('.')[0]
         # CHECK IF THE GRAPH IS ALREADY CONSTRUCTED (ALREADY EXISTING .PICKLE FILE):
         if os.path.isfile(output_dir + self.filename + '.pickle'):
@@ -117,15 +129,15 @@ class Graph:
 
     # GETTERS:
     def get_nodes(self):
+        """
+        Returns the Nodes dictionary of the Graph.
+        :return: Nodes dictionary of the Graph.
+        """
         return self._nodes
 
     def get_edges(self):
+        """
+        Returns the Edges dictionary of the Graph.
+        :return: Edges dictionary of the Graph.
+        """
         return self._edges
-
-
-def main():
-    pass
-
-
-if __name__ == "__main__":
-    main()

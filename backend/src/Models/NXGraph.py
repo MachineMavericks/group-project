@@ -5,6 +5,18 @@ import time
 
 class NXGraph(nx.MultiDiGraph):
     def __init__(self, graph=None, pickle_path=None, dataset_number=1, day=None, save_gml=None, output_path=None):
+        """
+        This constructor creates a NXGraph object. A NXGraph object is an object that represents a graph, using the
+        NetworkX library. It is a subclass of the MultiDiGraph class of the NetworkX library, as it extends the class
+        object with some custom methods, such as this constructor that creates this MultiDiGraph object from a Graph
+        object, or from a pickle file.
+        :param graph: The Graph object from which to create the NXGraph object.
+        :param pickle_path: The path to the pickle file from which to create the NXGraph object.
+        :param dataset_number: The number of the dataset to use.
+        :param day: The day to use.
+        :param save_gml: The boolean value that indicates whether to save the graph as a GML file or not.
+        :param output_path: The path to the output file, if the graph is to be saved as a GML file.
+        """
         start = time.time()
         super().__init__()
         if graph is not None or pickle_path is not None:
@@ -62,11 +74,3 @@ class NXGraph(nx.MultiDiGraph):
             if save_gml and output_path is not None:
                 nx.write_gml(self, output_path, stringizer=str)
             print("NXGraph constructed in {} seconds.".format(round(time.time() - start, 2)))
-
-
-def main():
-    pass
-
-
-if __name__ == "__main__":
-    main()
