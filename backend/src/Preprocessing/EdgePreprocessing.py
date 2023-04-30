@@ -3,6 +3,11 @@ import pandas as pd
 from tqdm import tqdm
 
 def find_mileages_differences(df_):
+    """
+    This function finds the differences between the mileages of the edges. It is a temporary function, used to find
+    the edges with different mileages.
+    :param df_: The dataframe of the railway dataset.
+    """
     edges_subs = {}
     dp_st_id = 0
     arr_st_id = 0
@@ -33,6 +38,13 @@ def find_mileages_differences(df_):
 
 
 def edges_preprocessing(df, save_csv=False, output_path=None):
+    """
+    This function preprocesses the edges dataframe, converting the trains stops to edges travels.
+    :param df: The dataframe of the railway dataset.
+    :param save_csv: The boolean flag that indicates whether to save the dataframe to a csv file or not.
+    :param output_path: The output path of the csv file.
+    :return: The dataframe of the edges travels.
+    """
     print("Preprocessing the edges dataframe...")
     # STEP 1: EDGES CONSTRUCTION: CONVERT TRAINS STOPS TO EDGES TRAVELS:
     edgesPassages = {}
@@ -66,7 +78,6 @@ def edges_preprocessing(df, save_csv=False, output_path=None):
     # STEP 2: MILEAGE FILTERING/CONSENSUS:
     # The idea is to find the mileage of the edges whose mileage is 0 and set it to the value of the another instance of
     # a combination of dp_st_id and arr_st_id whose travel time is the closest to their average travel time:
-    #
     # First, we need a dataframe with the average travel time for each combination of dep_st_id, arr_st_id and mileage:
     # Group by unique combinations of dep_st_id, arr_st_id and mileage (and keep the average travel time):
     df_values = df_.groupby(['dep_st_id', 'arr_st_id', 'mileage']).apply(lambda x: pd.Series({

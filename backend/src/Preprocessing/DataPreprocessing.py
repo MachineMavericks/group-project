@@ -5,6 +5,11 @@ import math
 
 # 1. REMOVE DUPLICATED ROWS:
 def remove_duplicates(df):
+    """
+    This pipeline step removes duplicated rows from the dataframe.
+    :param df: The dataframe to have its duplicated rows removed.
+    :return: The dataframe without duplicated rows.
+    """
     df = df.drop_duplicates()
     print("Removed " + str(len(df) - len(df.drop_duplicates())) + " duplicated row(s).")
     df = df.reset_index(drop=True)
@@ -12,6 +17,11 @@ def remove_duplicates(df):
 
 # 2. REMOVE EDGES THAT CONNECT THE SAME STATION:
 def remove_edges_that_connect_the_same_station(df):
+    """
+    This pipeline step removes edges that connect the same station.
+    :param df: The dataframe to have its edges that connect the same station removed.
+    :return: The dataframe without edges that connect the same station.
+    """
     indexes = []
     for index, row in df.iterrows():
         if index != 0 and row['train'] == df.iloc[index - 1]['train'] and row['st_id'] == df.iloc[index - 1]['st_id']:
@@ -26,6 +36,11 @@ def remove_edges_that_connect_the_same_station(df):
 
 # 3. UNNORMALIZE THE DEPARTURE AND ARRIVAL TIMES:
 def unnormalize_times(df):
+    """
+    This pipeline step unnormalizes the departure and arrival times.
+    :param df: The dataframe to have its departure and arrival times unnormalized.
+    :return: The dataframe with unnormalized departure and arrival times.
+    """
     count = 0
     for index, row in df.iterrows():
         try:
@@ -50,6 +65,11 @@ def unnormalize_times(df):
 
 # 4. REMOVE TRAINS WITH CORRUPTED TIMES:
 def remove_trains_with_corrupted_times(df):
+    """
+    This pipeline step removes trains with corrupted times.
+    :param df: The dataframe to have its trains with corrupted times removed.
+    :return: The dataframe without trains with corrupted times.
+    """
     train_id = 0
     isTrainCorrupted = False
     corrupted_train_ids = []
@@ -73,6 +93,11 @@ def remove_trains_with_corrupted_times(df):
 
 # 5. REPLACE NULL MILEAGES WITH ZEROES:
 def replace_null_mileages_with_zeroes(df):
+    """
+    This pipeline step replaces null mileages with zeroes.
+    :param df: The dataframe to have its null mileages replaced with zeroes.
+    :return: The dataframe with null mileages replaced with zeroes.
+    """
     df['mileage'] = df['mileage'].fillna(0)
     df['mileage'] = df['mileage'].replace(' ', 0)
     print("Replaced null mileage with zeroes.")
@@ -81,6 +106,11 @@ def replace_null_mileages_with_zeroes(df):
 
 # 6. REPLACE NULL STAY TIMES WITH ZEROES:
 def replace_null_stay_times_with_zeroes(df):
+    """
+    This pipeline step replaces null stay times with zeroes.
+    :param df: The dataframe to have its null stay times replaced with zeroes.
+    :return: The dataframe with null stay times replaced with zeroes.
+    """
     df['stay_time'] = df['stay_time']\
         .fillna(0)\
         .replace(' ', 0)\
@@ -91,6 +121,11 @@ def replace_null_stay_times_with_zeroes(df):
 
 # 7. REPLACE DAY N by THE N VALUE ONLY:
 def replace_day_values(df):
+    """
+    This pipeline step replaces day values by their numeric values.
+    :param df: The dataframe to have its day values replaced by their numeric values.
+    :return: The dataframe with day values replaced by their numeric values.
+    """
     df['date'] = df['date'].str[4:].astype(int)
     print("Replaced day values by their numeric values.")
     df = df.reset_index(drop=True)
@@ -98,6 +133,11 @@ def replace_day_values(df):
 
 # X. DEDUCE MILEAGES USING TRAINS SPEED METADATA:
 def deduce_mileage_using_speed_and_travel_times(df):
+    """
+    This pipeline step deduces the mileage using the trains speed metadata.
+    :param df: The dataframe to have its mileage deduced using the trains speed metadata.
+    :return: The dataframe with mileage deduced using the trains speed metadata.
+    """
     kmph_speed_dict = {
     'G': 350,
     'C': 350,
@@ -130,7 +170,13 @@ def deduce_mileage_using_speed_and_travel_times(df):
 
 # CHINESE RAILWAY PREPROCESSING PIPELINE:
 def chinese_railway_preprocessing_pipeline(df, save_csv=False, output_path=None):
-
+    """
+    This function is the preprocessing pipeline for the Chinese Railway dataset.
+    :param df: The dataframe to be preprocessed.
+    :param save_csv: The boolean value that indicates whether to save the preprocessed dataframe as a csv file.
+    :param output_path: The path to save the preprocessed dataframe as a csv file.
+    :return:
+    """
     # SETTINGS=
     original_size = len(df)
 
@@ -179,6 +225,13 @@ def chinese_railway_preprocessing_pipeline(df, save_csv=False, output_path=None)
 
 # INDIAN RAILWAY PREPROCESSING PIPELINE:
 def indian_railway_preprocessing_pipeline(df, save_csv=False, output_path=None):
+    """
+    This function is the preprocessing pipeline for the Indian Railway dataset.
+    :param df: The dataframe to be preprocessed.
+    :param save_csv: The boolean value that indicates whether to save the preprocessed dataframe as a csv file.
+    :param output_path: The path to save the preprocessed dataframe as a csv file.
+    :return:
+    """
     # Remove unnecessary columns:
     df = df.drop(columns=['state', 'name', 'zone', 'address', 'train_name', 'station_name'])
     df = df.rename(columns={'train_number': 'train', 'id': 'st_no', 'station_code': 'st_id', 'departure': 'dep_time', 'arrival': 'arr_time', 'day': 'date', 'X': 'lon', 'Y': 'lat'})
@@ -284,9 +337,3 @@ def indian_railway_preprocessing_pipeline(df, save_csv=False, output_path=None):
         df.to_csv(output_path, index=False)
         print("Saved the result to: " + output_path)
     return df
-
-
-def main():
-    pass
-if __name__ == '__main__':
-    main()
