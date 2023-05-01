@@ -15,7 +15,7 @@ from scipy.special import factorial
 import time
 
 # MODELS=
-from src.Models.NXGraph import NXGraph
+from src.Models.NXGraph import NXGraph 
 from src.Models.Graph import Graph
 
 # WARNINGS=
@@ -249,6 +249,10 @@ def plotly_default(pickle_path, day=None, output_path=None):
     if output_path is not None:
         fig.write_html(output_path)
     return fig
+
+
+
+
 
 # PLOTLY HEATMAP:
 def plotly_heatmap(pickle_path, component=None, metric=None, day=None, output_path=None):
