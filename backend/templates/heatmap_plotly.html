@@ -1,6 +1,7 @@
 {% extends 'base_plotly.html' %}
 
 {% block filters %}
+<!--Script hiding or showing options-->
 <script>
     function DisplayRelevant() {
         var Component = document.getElementById("component");
@@ -10,6 +11,11 @@
         clos_cent.style.display = component.value == "node" ? "block" : "none";
     }
 </script>
+<!--Filters for the heatmap service including:
+-Day
+-Component
+-Metric
+-->
 <form class="row">
     <div class="col">
         <div class="input-group input-group-outline my-3">
