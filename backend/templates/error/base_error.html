@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+<!--Error block as a red card-->
 {% block graph %}
 <div class="row">
   <div class="col"></div>
@@ -10,6 +11,7 @@
       <br>
       <i class="material-icons-round m-2 align-self-center" style="color:black; font-size: xxx-large">warning</i>
       <br>
+      <!--Content block specifying the error-->
       {% block error_content %}{% endblock %}
       <br>
     </div>

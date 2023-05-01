@@ -12,9 +12,17 @@
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 -->
+
+<!--
+Base window of the app.
+-sidebar on the left
+-empty content blocks to be filled in template extensions
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 
+<!--Content block for additional scripts to add to the page-->
 {% block addscript %}
 {% endblock %}
 
@@ -186,6 +194,7 @@
 <main class="main-content ps ps--active-y">
     <div class="container-fluid py-4">
         <div class="row mt-2">
+            <!--Content block placed in the middle of the screen, mainly for graph/maps display-->
             {% block graph %}
             <!--            <div class="col">-->
             <!--                <p class="text-white">-->
@@ -201,9 +210,11 @@
             <!--            </div>-->
             <!--            <div class="col"></div>-->
             {% endblock %}
+            <!--Content block placed in the same row, in case of a need of a right sidebar-->
             {% block textform %}
             {% endblock %}
         </div>
+        <!--Content block placed under the map for filters-->
         {% block filters %}{% endblock %}
     </div>
 </main>
@@ -489,6 +500,7 @@
 <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
 <script src="{{ url_for('static', filename='assets/js/material-dashboard.min.js') }}"></script>
 
+<!--JS function to display the services in the sidebar only when the pickle files are loaded-->
 <script>
     let chinese_file_path = '../../static/output/chinese.pickle'
     let indian_file_path = '../../static/output/indian.pickle'

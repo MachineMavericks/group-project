@@ -1,6 +1,7 @@
 {% extends 'base_plotly.html' %}
 
 {% block filters %}
+<!--Script showing or hiding options-->
 <script>
     function DisplayRelevant() {
         var Algorithm = document.getElementById("algorithm");
@@ -8,6 +9,12 @@
         Weight.style.display = algorithm.value == "Louvain" ? "block" : "none";
     }
 </script>
+<!--Filters for the clustering service including:
+-Day
+-Algorithm
+-Weight
+-Advanced legend
+-->
 <form class="row">
     <div class="col">
         <div class="input-group input-group-outline my-3">

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+<!--Dataset selection page-->
 {% block graph %}
 <div class="row text-xl-center">
     <p class="text-white text-bold text-5xl">Choose Dataset</p>
@@ -27,6 +28,7 @@
         <form method="POST" enctype=multipart/form-data>
             <input class="card bg-gradient-faded-dark btn-outline-white min-height-200 shadow-none" type="file" name="file">
             <p>
+                <!--Content block indicating information on the upload-->
                 {% block uploadtext %}
                 Drag your files or click in this area.
                 {% endblock %}
