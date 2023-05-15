@@ -26,16 +26,29 @@ app.register_blueprint(nxgraph_bp)
 # INDEX ROUTE:
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    """
+    This function renders the template of the web app and redirect the user to the home page.
+    :return:
+    """
     return render_template("base.html")
 
 
 # UPLOAD ROUTE:
 def allowed_file(filename):
+    """
+    This function returns True/False if whether or not the file is allowed to be uploaded.
+    :param filename: The path of the file to verify.
+    :return: A boolean defining if whether or not the file is allowed.
+    """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 
 @app.route('/choice', methods=['GET', 'POST'])
 def choose_dataset():
+    """
+    This function allows to render the templates to select the dataset, and renders a loading bar.
+    :return: A rendered templates of the dataset selection.
+    """
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -53,6 +66,10 @@ def choose_dataset():
 
 @app.route('/clear-cache', methods=['GET', 'POST'])
 def clear_cache():
+    """
+    This function returns the base template used throughout the application.
+    :return: The base template of the web-application.
+    """
     shutil.rmtree(output_dir)
     os.mkdir(output_dir)
     return render_template("base.html")

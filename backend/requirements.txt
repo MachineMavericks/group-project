@@ -59,6 +59,7 @@ jupyter_server_terminals==0.4.4
 jupyterlab-pygments==0.2.2
 jupyterlab-widgets==3.0.5
 kiwisolver==1.4.4
+kneed==0.8.2
 MarkupSafe==2.1.2
 matplotlib==3.7.1
 matplotlib-inline==0.1.6
@@ -114,7 +115,9 @@ tenacity==8.2.2
 terminado==0.17.1
 threadpoolctl==3.1.0
 tinycss2==1.2.1
+tk==0.1.0
 tornado==6.2
+tqdm==4.65.0
 traitlets==5.9.0
 uri-template==1.2.0
 urllib3==1.26.14
@@ -124,6 +127,3 @@ webencodings==0.5.1
 websocket-client==1.5.1
 Werkzeug==2.2.3
 widgetsnbextension==4.0.5
-
-kneed~=0.8.2
-tqdm~=4.65.0
